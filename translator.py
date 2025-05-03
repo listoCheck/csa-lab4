@@ -35,6 +35,7 @@ def symbol2opcode(symbol):
         "!": Opcode.STORE,
         "@": Opcode.FETCH,
         "key": Opcode.KEY,
+        "halt": Opcode.EXIT
     }.get(symbol)
 
 
@@ -82,28 +83,28 @@ def translate(text):
     return code
 
 
-def main(source, target):
+def main(source2, target2):
     """Функция запуска транслятора. Параметры -- исходный и целевой файлы."""
-    with open(source, encoding="utf-8") as f:
-        source = f.read()
+    with open(source2, encoding="utf-8") as f:
+        source2 = f.read()
 
-    code = translate(source)
+    code = translate(source2)
     binary_code = to_bytes(code)
     hex_code = to_hex(code)
 
     # Убедимся, что каталог назначения существует
-    os.makedirs(os.path.dirname(os.path.abspath(target)) or ".", exist_ok=True)
+    os.makedirs(os.path.dirname(os.path.abspath(target2)) or ".", exist_ok=True)
 
-    # Запишим выходные файлы
-    if target.endswith(".bin"):
-        with open(target, "wb") as f:
+    # Запишем выходные файлы
+    if target2.endswith(".bin"):
+        with open(target2, "wb") as f:
             f.write(binary_code)
-        with open(target + ".hex", "w") as f:
+        with open(target2 + ".hex", "w") as f:
             f.write(hex_code)
     else:
-        write_json(target, code)
+        write_json(target2, code)
 
-    print("source LoC:", len(source.split("\n")), "code instr:", len(code))
+    print("source LoC:", len(source2.split("\n")), "code instr:", len(code))
 
 
 if __name__ == "__main__":

@@ -32,6 +32,7 @@ class Opcode(str, Enum):
     STORE = "!"  # addr value !
     FETCH = "@"  # addr @
     KEY = "key"  # Считывание символа с клавиатуры
+    HALT = "halt"  # Останов
 
     def __str__(self):
         return str(self.value)
@@ -67,6 +68,7 @@ opcode_to_binary = {
     Opcode.STORE:    0x12,
     Opcode.FETCH:    0x13,
     Opcode.KEY:      0x14,
+    Opcode.HALT:     0x15,
 }
 
 # Словарь соответствия бинарных значений к операциям
@@ -92,6 +94,7 @@ binary_to_opcode = {
     0x12: Opcode.STORE,
     0x13: Opcode.FETCH,
     0x14: Opcode.KEY,
+    0x15: Opcode.HALT,
 }
 
 def to_bytes(code):
@@ -138,7 +141,7 @@ def to_hex(code):
 
         # Преобразуем опкод и адрес в мнемонику
         mnemonic = binary_to_opcode[opcode_bin].value
-        if opcode_bin in (0x10):
+        if opcode_bin == 0x10:
             mnemonic = f"{mnemonic} {arg}"
 
         # Формируем строку в требуемом формате
