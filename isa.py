@@ -28,7 +28,6 @@ class Opcode(str, Enum):
     XOR = "xor"  # Побитовая операция исключающее ИЛИ
     INVERT = "invert"  # Побитовое НЕ
     IF = "if"  # Начало условия
-    THEN = "then"  # Завершение условия
     EXIT = "exit"  # Завершение выполнения слова
     STORE = "!"  # addr value !
     FETCH = "@"  # addr @
@@ -64,11 +63,10 @@ opcode_to_binary = {
     Opcode.XOR:      0x0E,
     Opcode.INVERT:   0x0F,
     Opcode.IF:       0x10,
-    Opcode.THEN:     0x11,
-    Opcode.EXIT:     0x12,
-    Opcode.STORE:    0x13,
-    Opcode.FETCH:    0x14,
-    Opcode.KEY:      0x15,
+    Opcode.EXIT:     0x11,
+    Opcode.STORE:    0x12,
+    Opcode.FETCH:    0x13,
+    Opcode.KEY:      0x14,
 }
 
 # Словарь соответствия бинарных значений к операциям
@@ -90,11 +88,10 @@ binary_to_opcode = {
     0x0E: Opcode.XOR,
     0x0F: Opcode.INVERT,
     0x10: Opcode.IF,
-    0x11: Opcode.THEN,
-    0x12: Opcode.EXIT,
-    0x13: Opcode.STORE,
-    0x14: Opcode.FETCH,
-    0x15: Opcode.KEY,
+    0x11: Opcode.EXIT,
+    0x12: Opcode.STORE,
+    0x13: Opcode.FETCH,
+    0x14: Opcode.KEY,
 }
 
 def to_bytes(code):
@@ -141,7 +138,7 @@ def to_hex(code):
 
         # Преобразуем опкод и адрес в мнемонику
         mnemonic = binary_to_opcode[opcode_bin].value
-        if opcode_bin in (0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18):
+        if opcode_bin in (0x10):
             mnemonic = f"{mnemonic} {arg}"
 
         # Формируем строку в требуемом формате
@@ -186,8 +183,7 @@ def from_bytes(binary_code):
         instr = {"index": i // 4, "opcode": opcode}
 
         # Добавляем адрес перехода только для инструкций перехода
-        if opcode in {Opcode.IF, Opcode.ELSE, Opcode.THEN, Opcode.BEGIN, Opcode.UNTIL, Opcode.WHILE, Opcode.REPEAT,
-                      Opcode.DO, Opcode.LOOP}:
+        if opcode in {Opcode.IF}:
             instr["arg"] = arg
 
         structured_code.append(instr)

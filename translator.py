@@ -7,8 +7,7 @@ def symbols():
     """Полное множество символов языка, включая слова."""
     return {
         "drop", "dup", "swap", "+", "-", "*", "/", "mod", "negate", "=", "<", ">", "and", "or", "xor", "invert",
-        "if", "else", "then", "begin", "until", "while", "repeat", "do", "loop", "leave", "exit", "!", "@",
-        "allot", "emit", "key", ".", "cr", "halt"
+        "if", "exit", "!", "@", "key"
     }
 
 #asdasd
@@ -32,24 +31,10 @@ def symbol2opcode(symbol):
         "xor": Opcode.XOR,
         "invert": Opcode.INVERT,
         "if": Opcode.IF,
-        "else": Opcode.ELSE,
-        "then": Opcode.THEN,
-        "begin": Opcode.BEGIN,
-        "until": Opcode.UNTIL,
-        "while": Opcode.WHILE,
-        "repeat": Opcode.REPEAT,
-        "do": Opcode.DO,
-        "loop": Opcode.LOOP,
-        "leave": Opcode.EXIT,  # Здесь leave эквивалентен EXIT
         "exit": Opcode.EXIT,
         "!": Opcode.STORE,
         "@": Opcode.FETCH,
-        "allot": Opcode.ALLOT,
-        "emit": Opcode.EMIT,
         "key": Opcode.KEY,
-        ".": Opcode.PRINT,
-        "cr": Opcode.CR,
-        "halt": Opcode.HALT,
     }.get(symbol)
 
 
