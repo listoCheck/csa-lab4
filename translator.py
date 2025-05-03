@@ -11,7 +11,7 @@ def symbols():
         "allot", "emit", "key", ".", "cr", "halt"
     }
 
-
+#asdasd
 def symbol2opcode(symbol):
     """Отображение операторов исходного кода в коды операций."""
     return {
