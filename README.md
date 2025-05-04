@@ -1,4 +1,19 @@
 # csa-lab4
+# Laboratory work № 4. Experiment
+- Амузинский Артем Андреевич, P3206
+- Ваиант: `alg -> forth | stack | neum | mc | tick | binary | stream | port | pstr | prob1 | cache`
+- Расшифровка варианта:
+  - `forth`: forth-like stack-based syntax with Reverse Polish Notation (RPN)
+  - `stack`: stack-based CPU architecture
+  - `neum`: Von Neumann architecture
+  - `mc`: microcoded control unit
+  - `tick`: cycle-accurate simulation 
+  - `binary`: true binary machine code
+  - `stream`: stream based I/O
+  - `port`: port-mapped I/O
+  - `cstr`: c-style null terminated strings
+  - `prob1`: [Euler problem 4](https://projecteuler.net/problem=4)  
+  - `vector`: vector operations (parallel data processing)
 
 **DROP** – Удаляет верхний элемент стека. <br>
 **DUP** – Дублирует верхний элемент стека. <br>
