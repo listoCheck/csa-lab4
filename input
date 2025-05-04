@@ -4,4 +4,4 @@ start:
     drop
     halt
 end:
-    exit
+    halt

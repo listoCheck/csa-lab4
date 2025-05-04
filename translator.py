@@ -7,7 +7,7 @@ def symbols():
     """Полное множество символов языка, включая слова."""
     return {
         "drop", "dup", "swap", "+", "-", "*", "/", "mod", "negate", "=", "<", ">", "and", "or", "xor", "invert",
-        "if", "exit", "!", "@", "key"
+        "if", "exit", "!", "@", "key", "halt"
     }
 
 #asdasd
@@ -35,33 +35,31 @@ def symbol2opcode(symbol):
         "!": Opcode.STORE,
         "@": Opcode.FETCH,
         "key": Opcode.KEY,
-        "halt": Opcode.EXIT
+        "halt": Opcode.HALT
     }.get(symbol)
 
 
 def text2terms(text):
     """Трансляция текста в последовательность операторов языка (токенов), включая метки."""
-
     terms = []
     lines = text.splitlines()
 
-    # 1-й проход: собираем все метки (без двоеточия)
+    print("\nПолученный код:")
+    print("\n".join(str(i) for i in lines))
+
+    # собираем все метки
     labels = set()
     for line_num, line in enumerate(lines, 1):
         for word in line.split():
             if word.endswith(":"):
                 labels.add(word[:-1])
 
-    # 2-й проход: сами термы
+    # термы
     for line_num, line in enumerate(lines, 1):
         for pos, word in enumerate(line.split(), 1):
             # если это определение метки или команда или ссылка на метку
             if word.endswith(":") or word in symbols() or word in labels:
                 terms.append(Term(line_num, pos, word))
-
-    # Для отладки можно раскомментировать:
-    # print("TERMS:", terms)
-
     return terms
 
 
@@ -69,8 +67,7 @@ def text2terms(text):
 
 def translate(text):
     """Трансляция текста программы в машинный код с поддержкой меток."""
-    terms = text2terms(text)
-
+    terms= text2terms(text)
     # Собираем определения меток
     labels = {}
     pc_counter = 0
@@ -125,9 +122,12 @@ def translate(text):
 
         pc += 1
 
-    # В конце — команда остановки
-    code.append({"index": pc, "opcode": Opcode.HALT})
-    print(code)
+    # В конце — команда остановки, если нету
+    if not code or code[-1]["opcode"] != Opcode.HALT:
+        code.append({"index": pc, "opcode": Opcode.HALT})
+    print("\nМетки:")
+    print(labels, '\n')
+    print("\n".join(str(i) for i in code))
     return code
 
 

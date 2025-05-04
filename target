@@ -11,7 +11,7 @@
     {
         "index": 1,
         "opcode": "if",
-        "arg": 4,
+        "arg": 5,
         "term": [
             3,
             1,
@@ -29,15 +29,20 @@
     },
     {
         "index": 3,
-        "opcode": "exit",
+        "opcode": "halt",
         "term": [
-            7,
+            5,
             1,
-            "exit"
+            "halt"
         ]
     },
     {
         "index": 4,
-        "opcode": "halt"
+        "opcode": "halt",
+        "term": [
+            7,
+            1,
+            "halt"
+        ]
     }
 ]
