@@ -28,6 +28,15 @@
     },
     {
         "index": 3,
+        "opcode": "if",
+        "term": [
+            4,
+            1,
+            "if"
+        ]
+    },
+    {
+        "index": 4,
         "opcode": "halt"
     }
 ]

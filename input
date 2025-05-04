@@ -1,3 +1,4 @@
 dup
 drop
 /
+if .adada
