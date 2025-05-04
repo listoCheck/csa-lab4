@@ -40,47 +40,96 @@ def symbol2opcode(symbol):
 
 
 def text2terms(text):
-    """Трансляция текста в последовательность операторов языка (токенов).
+    """Трансляция текста в последовательность операторов языка (токенов), включая метки."""
 
-    Включает в себя:
-
-    - отсеивание всех незначимых символов (считаются комментариями);
-    - проверка формальной корректности программы (парность оператора цикла).
-    """
     terms = []
     lines = text.splitlines()
 
+    # 1-й проход: собираем все метки (без двоеточия)
+    labels = set()
     for line_num, line in enumerate(lines, 1):
-        words = line.split()
-        for pos, word in enumerate(words, 1):
-            if word in symbols():  # Проверяем наличие целого слова в наборе символов
+        for word in line.split():
+            if word.endswith(":"):
+                labels.add(word[:-1])
+
+    # 2-й проход: сами термы
+    for line_num, line in enumerate(lines, 1):
+        for pos, word in enumerate(line.split(), 1):
+            # если это определение метки или команда или ссылка на метку
+            if word.endswith(":") or word in symbols() or word in labels:
                 terms.append(Term(line_num, pos, word))
+
+    # Для отладки можно раскомментировать:
+    # print("TERMS:", terms)
 
     return terms
 
 
+
+
 def translate(text):
-    """Трансляция текста программы в машинный код.
-
-    Выполняется в два этапа:
-
-    1. Трансляция текста в последовательность операторов языка (токенов).
-    2. Генерация машинного кода.
-
-        - Прямое отображение части операторов в машинный код.
-    """
+    """Трансляция текста программы в машинный код с поддержкой меток."""
     terms = text2terms(text)
 
-    # Транслируем термы в машинный код.
-    code = []
-    for pc, term in enumerate(terms):
-        # Обработка тривиально отображаемых операций.
-        code.append({"index": pc, "opcode": symbol2opcode(term.symbol), "term": term})
+    # Собираем определения меток
+    labels = {}
+    pc_counter = 0
+    for term in terms:
+        if term.symbol.endswith(":"):
+            label = term.symbol[:-1]
+            assert label not in labels, f"Повторное определение метки: {label}"
+            labels[label] = None  # адрес пока не известен
+        else:
+            pc_counter += 1
+    # Теперь заполним реальные адреса (индексы)
+    addr = 0
+    for term in terms:
+        if term.symbol.endswith(":"):
+            labels[term.symbol[:-1]] = addr
+        else:
+            addr += 1
 
-    # Добавляем инструкцию остановки процессора в конец программы.
-    code.append({"index": len(code), "opcode": Opcode.HALT})
+    # Отфильтруем только те термы, которые нам нужны
+    filtered = [t for t in terms if not t.symbol.endswith(":")]
+
+    # Генерим код инструкций
+    code = []
+    i = 0
+    pc = 0
+    while i < len(filtered):
+        term = filtered[i]
+        sym = term.symbol
+
+        if sym == "if":
+            # Обязательный следующий терм — метка
+            assert i + 1 < len(filtered), f"После 'if' на строке {term.line} нет метки"
+            label = filtered[i + 1].symbol
+            assert label in labels, f"Метка не определена: {label}"
+            code.append({
+                "index": pc,
+                "opcode": Opcode.IF,
+                "arg": labels[label],
+                "term": term
+            })
+            i += 2  # съели 'if' и метку
+        else:
+            # Пропускаем одиночные ссылки на метки, если вдруг остались
+            if sym in labels:
+                i += 1
+                continue
+
+            opcode = symbol2opcode(sym)
+            assert opcode is not None, f"Неизвестная операция: {sym}"
+            code.append({"index": pc, "opcode": opcode, "term": term})
+            i += 1
+
+        pc += 1
+
+    # В конце — команда остановки
+    code.append({"index": pc, "opcode": Opcode.HALT})
     print(code)
     return code
+
 
 
 def main(source2, target2):

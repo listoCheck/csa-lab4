@@ -20,3 +20,37 @@ class Datapath:
         self.stack_second = 0
         self.input_buffer = input_buffer
         self.output_buffer = []
+
+
+class ControlUnit:
+    program = None # Память команд.
+    program_counter = None # Счётчик команд. Инициализируется нулём.
+    data_path = None # Блок обработки данных.
+    _tick = None # Текущее модельное время процессора (в тактах). Инициализируется нулём.
+
+    def __init__(self, program, data_path):
+        self.program = program
+        self.program_counter = 0
+        self.data_path = data_path
+        self._tick = 0
+        self.step = 0
+
+    def tick(self):
+        """Продвинуть модельное время процессора вперёд на один такт."""
+        self._tick += 1
+
+    def get_tick(self):
+        return self._tick
+
+    def signal_latch_program_counter(self, sel_next):
+        """Защёлкнуть новое значение счётчика команд.
+
+        Если `sel_next` равен `True`, то счётчик будет увеличен на единицу,
+        иначе -- будет установлен в значение аргумента текущей инструкции.
+        """
+        if sel_next:
+            self.program_counter += 1
+        else:
+            instr = self.program[self.program_counter]
+            assert "arg" in instr, "internal error"
+            self.program_counter = instr["arg"]

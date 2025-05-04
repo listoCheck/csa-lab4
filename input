@@ -1,4 +1,7 @@
-dup
-drop
-/
-if .adada
+start:
+    dup
+    if end
+    drop
+    halt
+end:
+    exit
