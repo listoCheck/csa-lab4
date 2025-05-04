@@ -118,13 +118,6 @@ def to_bytes(code):
 
 
 def to_hex(code):
-    """Преобразует машинный код в текстовый файл с шестнадцатеричным представлением.
-
-    Формат вывода:
-    <address> - <HEXCODE> - <mnemonic>
-    Например:
-    20 - 03340301 - add #01 <- 34 + #03
-    """
     binary_code = to_bytes(code)
     result = []
 
@@ -132,19 +125,18 @@ def to_hex(code):
         if i + 3 >= len(binary_code):
             break
 
-        # Формируем 32-битное слово из 4 байтов
         word = (binary_code[i] << 24) | (binary_code[i + 1] << 16) | (binary_code[i + 2] << 8) | binary_code[i + 3]
-
-        # Получаем опкод и адрес
         opcode_bin = (word >> 28) & 0xF
         arg = word & 0x0FFF_FFFF
 
-        # Преобразуем опкод и адрес в мнемонику
-        mnemonic = binary_to_opcode[opcode_bin].value
-        if opcode_bin == 0x10:
-            mnemonic = f"{mnemonic} {arg}"
+        opcode = binary_to_opcode.get(opcode_bin)
+        if opcode is None:
+            mnemonic = f"UNKNOWN_{opcode_bin:01X}"
+        else:
+            mnemonic = opcode.value
+            if opcode == Opcode.IF:
+                mnemonic += f" {arg}"
 
-        # Формируем строку в требуемом формате
         hex_word = f"{word:08X}"
         address = i // 4
         line = f"{address} - {hex_word} - {mnemonic}"
@@ -154,44 +146,31 @@ def to_hex(code):
 
 
 def from_bytes(binary_code):
-    """Преобразует бинарное представление машинного кода в структурированный формат.
-
-    Бинарное представление инструкций:
-
-    ┌─────────┬─────────────────────────────────────────────────────────────┐
-    │ 31...28 │ 27                                                        0 │
-    ├─────────┼─────────────────────────────────────────────────────────────┤
-    │  опкод  │                      адрес перехода                         │
-    └─────────┴─────────────────────────────────────────────────────────────┘
-    """
     structured_code = []
-    # Обрабатываем байты по 4 за раз для получения 32-битных инструкций
     for i in range(0, len(binary_code), 4):
         if i + 3 >= len(binary_code):
             break
 
-        # Формируем 32-битное слово из 4 байтов
         binary_instr = (
-                (binary_code[i] << 24) | (binary_code[i + 1] << 16) | (binary_code[i + 2] << 8) | binary_code[i + 3]
+            (binary_code[i] << 24) | (binary_code[i + 1] << 16) |
+            (binary_code[i + 2] << 8) | binary_code[i + 3]
         )
 
-        # Извлекаем опкод (старшие 4 бита)
         opcode_bin = (binary_instr >> 28) & 0xF
-        opcode = binary_to_opcode[opcode_bin]
-
-        # Извлекаем адрес перехода (младшие 28 бит)
         arg = binary_instr & 0x0FFF_FFFF
 
-        # Формируем структуру инструкции
-        instr = {"index": i // 4, "opcode": opcode}
+        opcode = binary_to_opcode.get(opcode_bin)
+        if opcode is None:
+            raise ValueError(f"Неизвестный бинарный код операции: {opcode_bin:#X} в инструкции {i // 4}")
 
-        # Добавляем адрес перехода только для инструкций перехода
-        if opcode in {Opcode.IF}:
+        instr = {"index": i // 4, "opcode": opcode}
+        if opcode == Opcode.IF:
             instr["arg"] = arg
 
         structured_code.append(instr)
 
     return structured_code
+
 
 
 def write_json(filename, code):
