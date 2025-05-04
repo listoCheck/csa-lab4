@@ -129,7 +129,7 @@ def translate(text):
     print(labels, '\n')
     print("\n".join(str(i) for i in code))
     return code
-
+#asdasd
 
 
 def main(source2, target2):
