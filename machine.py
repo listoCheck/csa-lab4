@@ -205,6 +205,7 @@ class ControlUnit:
             return
 
         if opcode is Opcode.STORE:
+            # Сохранение в память
             addr = self.data_path.stack_second
             value = self.data_path.stack_first
             assert 0 <= addr < self.data_path.data_memory_size, "Invalid memory address"
@@ -216,6 +217,7 @@ class ControlUnit:
             return
 
         if opcode is Opcode.FETCH:
+            # Загрузка из памяти
             addr = self.data_path.stack_first
             assert 0 <= addr < self.data_path.data_memory_size, "Invalid memory address"
             value = self.data_path.data_memory[addr]
@@ -226,6 +228,7 @@ class ControlUnit:
             return
 
         if opcode is Opcode.KEY:
+            # Считать символ с клавиатуры
             if not self.data_path.input_buffer:
                 raise RuntimeError("Input buffer is empty")
             char = self.data_path.input_buffer[0]
