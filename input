@@ -1,7 +1,8 @@
 start:
+    lit 10
     dup
+    add
     if end
-    drop
     halt
 end:
     halt

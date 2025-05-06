@@ -1,37 +1,38 @@
 [
     {
         "index": 0,
-        "opcode": "dup",
+        "opcode": "lit",
+        "arg": 10,
         "term": [
             2,
+            1,
+            "lit"
+        ]
+    },
+    {
+        "index": 1,
+        "opcode": "dup",
+        "term": [
+            3,
             1,
             "dup"
         ]
     },
     {
-        "index": 1,
+        "index": 2,
         "opcode": "if",
-        "arg": 5,
+        "arg": 6,
         "term": [
-            3,
+            5,
             1,
             "if"
-        ]
-    },
-    {
-        "index": 2,
-        "opcode": "drop",
-        "term": [
-            4,
-            1,
-            "drop"
         ]
     },
     {
         "index": 3,
         "opcode": "halt",
         "term": [
-            5,
+            6,
             1,
             "halt"
         ]
@@ -40,7 +41,7 @@
         "index": 4,
         "opcode": "halt",
         "term": [
-            7,
+            8,
             1,
             "halt"
         ]

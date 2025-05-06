@@ -4,15 +4,13 @@ from isa import Opcode, Term, to_bytes, to_hex, write_json
 
 
 def symbols():
-    """Полное множество символов языка, включая слова."""
     return {
         "drop", "dup", "swap", "+", "-", "*", "/", "mod", "negate", "=", "<", ">", "and", "or", "xor", "invert",
-        "if", "exit", "!", "@", "key", "halt"
+        "if", "exit", "!", "@", "key", "halt", "lit",
     }
 
-#asdasd
+
 def symbol2opcode(symbol):
-    """Отображение операторов исходного кода в коды операций."""
     return {
         "drop": Opcode.DROP,
         "dup": Opcode.DUP,
@@ -35,50 +33,53 @@ def symbol2opcode(symbol):
         "!": Opcode.STORE,
         "@": Opcode.FETCH,
         "key": Opcode.KEY,
-        "halt": Opcode.HALT
+        "halt": Opcode.HALT,
+        "lit": Opcode.LIT,
     }.get(symbol)
 
 
 def text2terms(text):
-    """Трансляция текста в последовательность операторов языка (токенов), включая метки."""
     terms = []
     lines = text.splitlines()
 
     print("\nПолученный код:")
     print("\n".join(str(i) for i in lines))
 
-    # собираем все метки
+    # Сначала найдём все метки
     labels = set()
     for line_num, line in enumerate(lines, 1):
         for word in line.split():
             if word.endswith(":"):
                 labels.add(word[:-1])
 
-    # термы
+    # Парсим термы
     for line_num, line in enumerate(lines, 1):
-        for pos, word in enumerate(line.split(), 1):
-            # если это определение метки или команда или ссылка на метку
+        words = line.split()
+        for pos, word in enumerate(words, 1):
             if word.endswith(":") or word in symbols() or word in labels:
                 terms.append(Term(line_num, pos, word))
+            else:
+                try:
+                    int(word)  # если это число
+                    terms.append(Term(line_num, pos, word))
+                except ValueError:
+                    pass  # не команда, не метка, не число — пропускаем
     return terms
 
 
-
-
 def translate(text):
-    """Трансляция текста программы в машинный код с поддержкой меток."""
-    terms= text2terms(text)
-    # Собираем определения меток
+    terms = text2terms(text)
+
     labels = {}
     pc_counter = 0
     for term in terms:
         if term.symbol.endswith(":"):
             label = term.symbol[:-1]
             assert label not in labels, f"Повторное определение метки: {label}"
-            labels[label] = None  # адрес пока не известен
+            labels[label] = None
         else:
             pc_counter += 1
-    # Теперь заполним реальные адреса (индексы)
+
     addr = 0
     for term in terms:
         if term.symbol.endswith(":"):
@@ -86,10 +87,8 @@ def translate(text):
         else:
             addr += 1
 
-    # Отфильтруем только те термы, которые нам нужны
     filtered = [t for t in terms if not t.symbol.endswith(":")]
 
-    # Генерим код инструкций
     code = []
     i = 0
     pc = 0
@@ -98,7 +97,6 @@ def translate(text):
         sym = term.symbol
 
         if sym == "if":
-            # Обязательный следующий терм — метка
             assert i + 1 < len(filtered), f"После 'if' на строке {term.line} нет метки"
             label = filtered[i + 1].symbol
             assert label in labels, f"Метка не определена: {label}"
@@ -108,13 +106,25 @@ def translate(text):
                 "arg": labels[label],
                 "term": term
             })
-            i += 2  # съели 'if' и метку
+            i += 2
+        elif sym == "lit":
+            assert i + 1 < len(filtered), f"После 'lit' на строке {term.line} нет значения"
+            value_term = filtered[i + 1]
+            try:
+                value = int(value_term.symbol)
+            except ValueError:
+                raise AssertionError(f"Некорректное значение после 'lit': {value_term.symbol} на строке {value_term.line}")
+            code.append({
+                "index": pc,
+                "opcode": Opcode.LIT,
+                "arg": value,
+                "term": term
+            })
+            i += 2
         else:
-            # Пропускаем одиночные ссылки на метки, если вдруг остались
             if sym in labels:
                 i += 1
                 continue
-
             opcode = symbol2opcode(sym)
             assert opcode is not None, f"Неизвестная операция: {sym}"
             code.append({"index": pc, "opcode": opcode, "term": term})
@@ -122,18 +132,16 @@ def translate(text):
 
         pc += 1
 
-    # В конце — команда остановки, если нету
     if not code or code[-1]["opcode"] != Opcode.HALT:
         code.append({"index": pc, "opcode": Opcode.HALT})
+
     print("\nМетки:")
     print(labels, '\n')
     print("\n".join(str(i) for i in code))
     return code
-#asdasd
 
 
 def main(source2, target2):
-    """Функция запуска транслятора. Параметры -- исходный и целевой файлы."""
     with open(source2, encoding="utf-8") as f:
         source2 = f.read()
 
@@ -141,10 +149,8 @@ def main(source2, target2):
     binary_code = to_bytes(code)
     hex_code = to_hex(code)
 
-    # Убедимся, что каталог назначения существует
     os.makedirs(os.path.dirname(os.path.abspath(target2)) or ".", exist_ok=True)
 
-    # Запишем выходные файлы
     if target2.endswith(".bin"):
         with open(target2, "wb") as f:
             f.write(binary_code)

@@ -1,5 +1,48 @@
-0 - 30000000 - +
-1 - 40000000 - -
-2 - 90000000 - =
-3 - 30000000 - +
-4 - 50000000 - *
+[
+    {
+        "index": 0,
+        "opcode": "dup",
+        "term": [
+            2,
+            1,
+            "dup"
+        ]
+    },
+    {
+        "index": 1,
+        "opcode": "if",
+        "arg": 5,
+        "term": [
+            3,
+            1,
+            "if"
+        ]
+    },
+    {
+        "index": 2,
+        "opcode": "drop",
+        "term": [
+            4,
+            1,
+            "drop"
+        ]
+    },
+    {
+        "index": 3,
+        "opcode": "halt",
+        "term": [
+            5,
+            1,
+            "halt"
+        ]
+    },
+    {
+        "index": 4,
+        "opcode": "halt",
+        "term": [
+            7,
+            1,
+            "halt"
+        ]
+    }
+]
