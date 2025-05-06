@@ -136,6 +136,7 @@ def translate(text):
 
     print("\nМетки:")
     print(labels, '\n')
+    print("\nКод")
     print("\n".join(str(i) for i in code))
     return code
 
@@ -148,6 +149,8 @@ def main(source2, target2):
     binary_code = to_bytes(code)
     hex_code = to_hex(code)
 
+    print("\nБайткод")
+    print(hex_code)
     os.makedirs(os.path.dirname(os.path.abspath(target2)) or ".", exist_ok=True)
 
     if target2.endswith(".bin"):
@@ -158,7 +161,7 @@ def main(source2, target2):
     else:
         write_json(target2, code)
 
-    print("source LoC:", len(source2.split("\n")), "code instr:", len(code))
+    print("\nsource LoC:", len(source2.split("\n")), "code instr:", len(code))
 
 
 if __name__ == "__main__":

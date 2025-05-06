@@ -103,21 +103,19 @@ binary_to_opcode = {
 def to_bytes(code):
     binary_bytes = bytearray()
     for instr in code:
-        # Получаем бинарный код операции
-        opcode_bin = opcode_to_binary[instr["opcode"]] << 28
+        opcode_val = opcode_to_binary[instr["opcode"]] & 0xFF  # 8 бит на опкод
+        arg = instr.get("arg", 0) & 0x00FFFFFF  # 24 бита на аргумент
 
-        # Добавляем адрес перехода, если он есть
-        arg = instr.get("arg", 0)
+        binary_instr = (opcode_val << 24) | arg
 
-        # Формируем 32-битное слово: опкод (4 бита) + адрес (28 бит)
-        binary_instr = opcode_bin | (arg & 0x0FFF_FFFF)
-
-        # Преобразуем 32-битное целое число в 4 байта (big-endian)
-        binary_bytes.extend(
-            ((binary_instr >> 24) & 0xFF, (binary_instr >> 16) & 0xFF, (binary_instr >> 8) & 0xFF, binary_instr & 0xFF)
-        )
-
+        binary_bytes.extend([
+            (binary_instr >> 24) & 0xFF,
+            (binary_instr >> 16) & 0xFF,
+            (binary_instr >> 8) & 0xFF,
+            binary_instr & 0xFF
+        ])
     return bytes(binary_bytes)
+
 
 
 def to_hex(code):
@@ -129,23 +127,23 @@ def to_hex(code):
             break
 
         word = (binary_code[i] << 24) | (binary_code[i + 1] << 16) | (binary_code[i + 2] << 8) | binary_code[i + 3]
-        opcode_bin = (word >> 28) & 0xF
-        arg = word & 0x0FFF_FFFF
+        opcode_bin = (word >> 24) & 0xFF
+        arg = word & 0x00FFFFFF
 
         opcode = binary_to_opcode.get(opcode_bin)
         if opcode is None:
-            mnemonic = f"UNKNOWN_{opcode_bin:01X}"
+            mnemonic = f"UNKNOWN_{opcode_bin:02X}"
         else:
             mnemonic = opcode.value
-            if opcode == Opcode.IF:
+            if opcode in (Opcode.IF, Opcode.LIT):
                 mnemonic += f" {arg}"
 
         hex_word = f"{word:08X}"
         address = i // 4
         line = f"{address} - {hex_word} - {mnemonic}"
         result.append(line)
-
     return "\n".join(result)
+
 
 
 def from_bytes(binary_code):
@@ -167,7 +165,7 @@ def from_bytes(binary_code):
             raise ValueError(f"Неизвестный бинарный код операции: {opcode_bin:#X} в инструкции {i // 4}")
 
         instr = {"index": i // 4, "opcode": opcode}
-        if opcode == Opcode.IF:
+        if opcode in (Opcode.IF, Opcode.LIT):
             instr["arg"] = arg
 
         structured_code.append(instr)

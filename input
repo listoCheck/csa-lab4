@@ -1,8 +1,9 @@
 start:
     lit 10
-    dup
-    +
+    key
+    -
     if end
     halt
 end:
+    lit 10
     halt

@@ -1,48 +1,7 @@
-[
-    {
-        "index": 0,
-        "opcode": "dup",
-        "term": [
-            2,
-            1,
-            "dup"
-        ]
-    },
-    {
-        "index": 1,
-        "opcode": "if",
-        "arg": 5,
-        "term": [
-            3,
-            1,
-            "if"
-        ]
-    },
-    {
-        "index": 2,
-        "opcode": "drop",
-        "term": [
-            4,
-            1,
-            "drop"
-        ]
-    },
-    {
-        "index": 3,
-        "opcode": "halt",
-        "term": [
-            5,
-            1,
-            "halt"
-        ]
-    },
-    {
-        "index": 4,
-        "opcode": "halt",
-        "term": [
-            7,
-            1,
-            "halt"
-        ]
-    }
-]
+0 - 1600000A - lit 10
+1 - 14000000 - key
+2 - 04000000 - -
+3 - 10000005 - if 5
+4 - 15000000 - halt
+5 - 1600000A - lit 10
+6 - 15000000 - halt
