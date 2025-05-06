@@ -69,7 +69,6 @@ def text2terms(text):
 
 def translate(text):
     terms = text2terms(text)
-
     labels = {}
     pc_counter = 0
     for term in terms:
@@ -103,7 +102,7 @@ def translate(text):
             code.append({
                 "index": pc,
                 "opcode": Opcode.IF,
-                "arg": labels[label],
+                "arg": labels[label] - len(labels),
                 "term": term
             })
             i += 2

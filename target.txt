@@ -20,8 +20,17 @@
     },
     {
         "index": 2,
+        "opcode": "+",
+        "term": [
+            4,
+            1,
+            "+"
+        ]
+    },
+    {
+        "index": 3,
         "opcode": "if",
-        "arg": 6,
+        "arg": 5,
         "term": [
             5,
             1,
@@ -29,7 +38,7 @@
         ]
     },
     {
-        "index": 3,
+        "index": 4,
         "opcode": "halt",
         "term": [
             6,
@@ -38,7 +47,7 @@
         ]
     },
     {
-        "index": 4,
+        "index": 5,
         "opcode": "halt",
         "term": [
             8,
