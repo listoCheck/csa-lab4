@@ -239,6 +239,14 @@ class ControlUnit:
             self.signal_latch_program_counter(sel_next=True)
             return
 
+        if opcode is Opcode.LIT:
+            # Прямая загрузка в вершину стека
+            vaule = instr["arg"]
+            self.data_path.stack_first, self.data_path.stack_second = vaule, self.data_path.stack_first
+            self.tick()
+            self.signal_latch_program_counter(sel_next=True)
+            return
+
 
 def __repr__(self):
     state_repr = "TICK: {:3} PC: {:3} ADDR: {:3} MEM[ADDR]: {:3} STACK: [{}, {}]".format(
