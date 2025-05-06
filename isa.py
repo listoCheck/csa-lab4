@@ -105,9 +105,7 @@ def to_bytes(code):
     for instr in code:
         opcode_val = opcode_to_binary[instr["opcode"]] & 0xFF  # 8 бит на опкод
         arg = instr.get("arg", 0) & 0x00FFFFFF  # 24 бита на аргумент
-
         binary_instr = (opcode_val << 24) | arg
-
         binary_bytes.extend([
             (binary_instr >> 24) & 0xFF,
             (binary_instr >> 16) & 0xFF,
@@ -121,7 +119,6 @@ def to_bytes(code):
 def to_hex(code):
     binary_code = to_bytes(code)
     result = []
-
     for i in range(0, len(binary_code), 4):
         if i + 3 >= len(binary_code):
             break
@@ -148,28 +145,22 @@ def to_hex(code):
 
 def from_bytes(binary_code):
     structured_code = []
-    for i in range(0, len(binary_code), 4):
-        if i + 3 >= len(binary_code):
-            break
-
-        binary_instr = (
-            (binary_code[i] << 24) | (binary_code[i + 1] << 16) |
-            (binary_code[i + 2] << 8) | binary_code[i + 3]
-        )
-
-        opcode_bin = (binary_instr >> 28) & 0xF
-        arg = binary_instr & 0x0FFF_FFFF
-
+    for line in binary_code.strip().splitlines():
+        parts = line.strip().split(" - ")
+        if len(parts) < 3:
+            continue
+        index_str, hex_word, mnemonic = parts
+        index = int(index_str)
+        word = int(hex_word, 16)
+        opcode_bin = (word >> 24) & 0xFF
+        arg = word & 0x00FFFFFF
         opcode = binary_to_opcode.get(opcode_bin)
         if opcode is None:
-            raise ValueError(f"Неизвестный бинарный код операции: {opcode_bin:#X} в инструкции {i // 4}")
-
-        instr = {"index": i // 4, "opcode": opcode}
+            raise ValueError(f"Неизвестный бинарный код операции: {opcode_bin:#X} в строке: {line}")
+        instr = {"index": index, "opcode": opcode}
         if opcode in (Opcode.IF, Opcode.LIT):
             instr["arg"] = arg
-
         structured_code.append(instr)
-
     return structured_code
 
 

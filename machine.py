@@ -248,25 +248,25 @@ class ControlUnit:
             return
 
 
-def __repr__(self):
-    state_repr = "TICK: {:3} PC: {:3} ADDR: {:3} MEM[ADDR]: {:3} STACK: [{}, {}]".format(
-        self._tick,
-        self.program_counter,
-        self.data_path.data_address,
-        self.data_path.data_memory[self.data_path.data_address],
-        self.data_path.stack_first,
-        self.data_path.stack_second,
-    )
+    def __repr__(self):
+        state_repr = "TICK: {:3} PC: {:3} ADDR: {:3} MEM[ADDR]: {:3} STACK: [{}, {}]".format(
+            self._tick,
+            self.program_counter,
+            self.data_path.data_address,
+            self.data_path.data_memory[self.data_path.data_address],
+            self.data_path.stack_first,
+            self.data_path.stack_second,
+        )
 
-    instr = self.program[self.program_counter]
-    opcode = instr["opcode"]
-    instr_repr = str(opcode)
-    if "arg" in instr:
-        instr_repr += " {}".format(instr["arg"])
+        instr = self.program[self.program_counter]
+        opcode = instr["opcode"]
+        instr_repr = str(opcode)
+        if "arg" in instr:
+            instr_repr += " {}".format(instr["arg"])
 
-    instr_hex = f"{opcode_to_binary[opcode] << 28 | (instr.get('arg', 0) & 0x0FFFFFFF):08X}"
+        instr_hex = f"{opcode_to_binary[opcode] << 24 | (instr.get('arg', 0) & 0x00FFFFFF):08X}"
 
-    return "{} \t{} [{}]".format(state_repr, instr_repr, instr_hex)
+        return "{} \t{} [{}]".format(state_repr, instr_repr, instr_hex)
 
 
 def simulation(code, input_tokens, data_memory_size, limit):
@@ -290,10 +290,9 @@ def simulation(code, input_tokens, data_memory_size, limit):
 
 
 def main(code_file, input_file):
-    with open(code_file, "rb") as file:
-        binary_code = file.read()
-    code = from_bytes(binary_code)
-
+    with open(code_file, "r", encoding="utf-8") as file:
+        text_code = file.read()
+    code = from_bytes(text_code)
     with open(input_file, encoding="utf-8") as file:
         input_text = file.read()
         input_tokens = list(input_text)
@@ -308,3 +307,4 @@ if __name__ == "__main__":
     assert len(sys.argv) == 3, "Usage: machine.py <code_file> <input_file>"
     _, code_file, input_file = sys.argv
     main(code_file, input_file)
+
