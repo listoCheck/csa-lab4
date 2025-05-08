@@ -33,7 +33,9 @@ class Opcode(str, Enum):
     FETCH = "@"  # addr @
     KEY = "key"  # Считывание символа с клавиатуры
     HALT = "halt"  # Останов
-    LIT = "lit"
+    LIT = "lit" # Ввод числа
+    EMIT = "emit" # Вывод символа с вершины стека
+
 
     def __str__(self):
         return str(self.value)
@@ -71,6 +73,7 @@ opcode_to_binary = {
     Opcode.KEY:      0x14,
     Opcode.HALT:     0x15,
     Opcode.LIT:      0x16,
+    Opcode.EMIT:     0x17,
 }
 
 # Словарь соответствия бинарных значений к операциям
@@ -98,6 +101,7 @@ binary_to_opcode = {
     0x14: Opcode.KEY,
     0x15: Opcode.HALT,
     0x16: Opcode.LIT,
+    0x17: Opcode.EMIT,
 }
 
 def to_bytes(code):

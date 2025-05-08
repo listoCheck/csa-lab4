@@ -1,15 +1,16 @@
 import logging
 import sys
-from isa import Opcode, from_bytes,opcode_to_binary
+from isa import Opcode, from_bytes, opcode_to_binary
+
 
 class Datapath:
-    stack_first = None # Верхняя ячейка стека
-    stack_second = None # Нижняя ячейка стека
-    input_buffer = None # Буфер входных данных. Инициализируется входными данными конструктора.
-    output_buffer = None # Буфер выходных данных.
-    data_memory_size = None # Размер памяти данных.
-    data_memory = None # Память данных. Инициализируется нулевыми значениями.
-    data_address = None # Адрес в памяти данных. Инициализируется нулём.
+    stack_first = None  # Верхняя ячейка стека
+    stack_second = None  # Нижняя ячейка стека
+    input_buffer = None  # Буфер входных данных. Инициализируется входными данными конструктора.
+    output_buffer = None  # Буфер выходных данных.
+    data_memory_size = None  # Размер памяти данных.
+    data_memory = None  # Память данных. Инициализируется нулевыми значениями.
+    data_address = None  # Адрес в памяти данных. Инициализируется нулём.
 
     def __init__(self, data_memory_size, input_buffer):
         assert data_memory_size > 0, "Data_memory size should be non-zero"
@@ -23,10 +24,11 @@ class Datapath:
 
 
 class ControlUnit:
-    program = None # Память команд.
-    program_counter = None # Счётчик команд. Инициализируется нулём.
-    data_path = None # Блок обработки данных.
-    _tick = None # Текущее модельное время процессора (в тактах). Инициализируется нулём.
+    program = None  # Память команд.
+    program_counter = None  # Счётчик команд. Инициализируется нулём.
+    data_path = None  # Блок обработки данных.
+    _tick = None  # Текущее модельное время процессора (в тактах). Инициализируется нулём.
+    input_index = None
 
     def __init__(self, program, data_path):
         self.program = program
@@ -34,6 +36,7 @@ class ControlUnit:
         self.data_path = data_path
         self._tick = 0
         self.step = 0
+        self.input_index = 0
 
     def tick(self):
         """Продвинуть модельное время процессора вперёд на один такт."""
@@ -41,6 +44,9 @@ class ControlUnit:
 
     def get_tick(self):
         return self._tick
+
+    def new_input_index(self):
+        self.input_index += 1
 
     def signal_latch_program_counter(self, sel_next):
         """Защёлкнуть новое значение счётчика команд.
@@ -228,15 +234,16 @@ class ControlUnit:
             return
 
         if opcode is Opcode.KEY:
-            # Считать символ с клавиатуры
+            # Считать символ с файла
             if not self.data_path.input_buffer:
                 raise RuntimeError("Input buffer is empty")
-            char = self.data_path.input_buffer[0]
+            char = self.data_path.input_buffer[self.input_index]
             self.data_path.input_buffer = self.data_path.input_buffer[1:]
             self.data_path.stack_second = self.data_path.stack_first
             self.data_path.stack_first = ord(char)
             self.tick()
             self.signal_latch_program_counter(sel_next=True)
+            self.new_input_index()
             return
 
         if opcode is Opcode.LIT:
@@ -247,6 +254,14 @@ class ControlUnit:
             self.signal_latch_program_counter(sel_next=True)
             return
 
+        if opcode is Opcode.EMIT:
+            # Вывод символа из вершины стека
+            char_code = self.data_path.stack_first
+            self.data_path.output_buffer.append(chr(char_code))
+            self.data_path.stack_first = self.data_path.stack_second
+            self.tick()
+            self.signal_latch_program_counter(sel_next=True)
+            return
 
     def __repr__(self):
         state_repr = "TICK: {:3} PC: {:3} ADDR: {:3} MEM[ADDR]: {:3} STACK: [{}, {}]".format(
@@ -307,4 +322,3 @@ if __name__ == "__main__":
     assert len(sys.argv) == 3, "Usage: machine.py <code_file> <input_file>"
     _, code_file, input_file = sys.argv
     main(code_file, input_file)
-

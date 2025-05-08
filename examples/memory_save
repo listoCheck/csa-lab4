@@ -1,0 +1,8 @@
+_start:
+    key
+    lit 10
+    swap
+    !
+    lit 10
+    @
+    halt

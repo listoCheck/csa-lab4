@@ -1,0 +1,11 @@
+start:
+    lit 10
+    dup
+    -
+    if end
+    halt
+end:
+    swap
+    lit 10
+    +
+    halt
