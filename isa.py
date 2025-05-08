@@ -35,6 +35,8 @@ class Opcode(str, Enum):
     HALT = "halt"  # Останов
     LIT = "lit" # Ввод числа
     EMIT = "emit" # Вывод символа с вершины стека
+    JUMP = "jump"
+
 
 
     def __str__(self):
@@ -74,6 +76,7 @@ opcode_to_binary = {
     Opcode.HALT:     0x15,
     Opcode.LIT:      0x16,
     Opcode.EMIT:     0x17,
+    Opcode.JUMP:     0x18,
 }
 
 # Словарь соответствия бинарных значений к операциям
@@ -102,6 +105,7 @@ binary_to_opcode = {
     0x15: Opcode.HALT,
     0x16: Opcode.LIT,
     0x17: Opcode.EMIT,
+    0x18: Opcode.JUMP,
 }
 
 def to_bytes(code):
@@ -136,7 +140,7 @@ def to_hex(code):
             mnemonic = f"UNKNOWN_{opcode_bin:02X}"
         else:
             mnemonic = opcode.value
-            if opcode in (Opcode.IF, Opcode.LIT):
+            if opcode in (Opcode.IF, Opcode.LIT, Opcode.JUMP):
                 mnemonic += f" {arg}"
 
         hex_word = f"{word:08X}"

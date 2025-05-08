@@ -6,7 +6,7 @@ from isa import Opcode, Term, to_bytes, to_hex, write_json
 def symbols():
     return {
         "drop", "dup", "swap", "+", "-", "*", "/", "mod", "negate", "=", "<", ">", "and", "or", "xor", "invert",
-        "if", "exit", "!", "@", "key", "halt", "lit", "emit"
+        "if", "exit", "!", "@", "key", "halt", "lit", "emit", "jump"
     }
 
 
@@ -36,16 +36,15 @@ def symbol2opcode(symbol):
         "halt": Opcode.HALT,
         "lit": Opcode.LIT,
         "emit": Opcode.EMIT,
+        "JUMP": Opcode.JUMP,
     }.get(symbol)
 
 
 def text2terms(text):
     terms = []
     lines = text.splitlines()
-
     print("\nПолученный код:")
     print("\n".join(str(i) for i in lines))
-
     # Сначала найдём все метки
     labels = set()
     for line_num, line in enumerate(lines, 1):
@@ -54,22 +53,27 @@ def text2terms(text):
                 labels.add(word[:-1])
 
     # Парсим термы
+    ic = 0
     for line_num, line in enumerate(lines, 1):
         words = line.split()
         for pos, word in enumerate(words, 1):
+            if word in symbols():
+                ic += 1
             if word.endswith(":") or word in symbols() or word in labels:
                 terms.append(Term(line_num, pos, word))
+                print(Term(line_num, pos, word))
             else:
                 try:
                     int(word)  # если это число
                     terms.append(Term(line_num, pos, word))
                 except ValueError:
                     pass  # не команда, не метка, не число — пропускаем
-    return terms
+    return terms, ic
 
 
 def translate(text):
-    terms = text2terms(text)
+    terms, normal_numeration = text2terms(text)
+
     labels = {}
     pc_counter = 0
     for term in terms:
@@ -80,6 +84,7 @@ def translate(text):
         else:
             pc_counter += 1
 
+    # Присваиваем меткам правильные адреса
     addr = 0
     for term in terms:
         if term.symbol.endswith(":"):
@@ -87,12 +92,24 @@ def translate(text):
         else:
             addr += 1
 
+    new_labels = {}
+    for i in range(len(terms)):
+        counter = 0
+        if terms[i].symbol.endswith(":"):
+            for j in range(i):
+                if terms[j].symbol in ("if", "lit", "jump"):
+                    counter += 1
+            new_labels[terms[i].symbol[:-1]] = labels[terms[i].symbol[:-1]] - counter
+
     filtered = [t for t in terms if not t.symbol.endswith(":")]
 
     code = []
     i = 0
     pc = 0
+    ic = 0
+
     while i < len(filtered):
+
         term = filtered[i]
         sym = term.symbol
 
@@ -100,13 +117,15 @@ def translate(text):
             assert i + 1 < len(filtered), f"После 'if' на строке {term.line} нет метки"
             label = filtered[i + 1].symbol
             assert label in labels, f"Метка не определена: {label}"
+            print("asdasd", labels[label], normal_numeration)
             code.append({
                 "index": pc,
                 "opcode": Opcode.IF,
-                "arg": labels[label] - len(labels),
+                "arg": new_labels[label],
                 "term": term
             })
             i += 2
+            ic += 1
         elif sym == "lit":
             assert i + 1 < len(filtered), f"После 'lit' на строке {term.line} нет значения"
             value_term = filtered[i + 1]
@@ -118,6 +137,17 @@ def translate(text):
                 "index": pc,
                 "opcode": Opcode.LIT,
                 "arg": value,
+                "term": term
+            })
+            i += 2
+        elif sym == "jump":
+            assert i + 1 < len(filtered), f"После 'if' на строке {term.line} нет метки"
+            label = filtered[i + 1].symbol
+            assert label in labels, f"Метка не определена: {label}"
+            code.append({
+                "index": pc,
+                "opcode": Opcode.JUMP,
+                "arg": new_labels[label],
                 "term": term
             })
             i += 2
@@ -140,6 +170,7 @@ def translate(text):
     print("\nКод")
     print("\n".join(str(i) for i in code))
     return code
+
 
 
 def main(source2, target2):

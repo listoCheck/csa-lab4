@@ -79,6 +79,7 @@ class ControlUnit:
         Обработка функций управления потоком исполнения вынесена в
         `decode_and_execute_control_flow_instruction`.
         """
+
         instr = self.program[self.program_counter]
         opcode = instr["opcode"]
 
@@ -263,6 +264,14 @@ class ControlUnit:
             self.signal_latch_program_counter(sel_next=True)
             return
 
+        if opcode is Opcode.JUMP:
+            # Перепрыгиваем на метку (адрес из аргумента инструкции)
+            addr = instr["arg"]
+            self.program_counter = addr
+            self.step = 0
+            self.tick()
+            return
+
     def __repr__(self):
         state_repr = "TICK: {:3} PC: {:3} ADDR: {:3} MEM[ADDR]: {:3} STACK: [{}, {}]".format(
             self._tick,
@@ -272,7 +281,9 @@ class ControlUnit:
             self.data_path.stack_first,
             self.data_path.stack_second,
         )
-
+        print()
+        print(self.program_counter)
+        print()
         instr = self.program[self.program_counter]
         opcode = instr["opcode"]
         instr_repr = str(opcode)

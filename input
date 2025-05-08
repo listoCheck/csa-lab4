@@ -1,38 +1,19 @@
-_start:
-    lit 72
-    emit
-
-    lit 101
-    emit
-
-    lit 108
-    emit
-
-    lit 108
-    emit
-
-    lit 111
-    emit
-
-    lit 32
-    emit
-
-    lit 87
-    emit
-
-    lit 111
-    emit
-
-    lit 114
-    emit
-
-    lit 108
-    emit
-
-    lit 100
-    emit
-
-    lit 33
-    emit
-
+start:
+    lit 10
+    lit 20
+    +
+    if end
+    lit 30
+    -
+    if end2
+    lit 40
+    halt
+end:
+    lit 10
+    +
+    halt
+end2:
+    swap
+    lit 10
+    if start
     halt

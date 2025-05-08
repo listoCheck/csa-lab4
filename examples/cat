@@ -1,0 +1,14 @@
+_start:
+    lit 5
+    key
+    !
+while:
+    lit 5
+    @
+    lit 1
+    swap
+    -
+    if end
+    jump while
+end:
+    halt
