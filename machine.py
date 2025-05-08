@@ -88,9 +88,12 @@ class ControlUnit:
 
         if opcode is Opcode.IF:
             addr = instr["arg"]
-            self.program_counter = addr
-            self.step = 0
-            self.tick()
+            if self.data_path.stack_first == 0:
+                self.program_counter = addr
+                self.step = 0
+                self.tick()
+            else:
+                self.program_counter += 1
             return
 
         if opcode is Opcode.DROP:
@@ -239,12 +242,11 @@ class ControlUnit:
             if not self.data_path.input_buffer:
                 raise RuntimeError("Input buffer is empty")
             char = self.data_path.input_buffer[self.input_index]
-            self.data_path.input_buffer = self.data_path.input_buffer[1:]
             self.data_path.stack_second = self.data_path.stack_first
             self.data_path.stack_first = ord(char)
             self.tick()
-            self.signal_latch_program_counter(sel_next=True)
             self.new_input_index()
+            self.signal_latch_program_counter(sel_next=True)
             return
 
         if opcode is Opcode.LIT:
@@ -259,7 +261,6 @@ class ControlUnit:
             # Вывод символа из вершины стека
             char_code = self.data_path.stack_first
             self.data_path.output_buffer.append(chr(char_code))
-            self.data_path.stack_first = self.data_path.stack_second
             self.tick()
             self.signal_latch_program_counter(sel_next=True)
             return
@@ -281,9 +282,6 @@ class ControlUnit:
             self.data_path.stack_first,
             self.data_path.stack_second,
         )
-        print()
-        print(self.program_counter)
-        print()
         instr = self.program[self.program_counter]
         opcode = instr["opcode"]
         instr_repr = str(opcode)

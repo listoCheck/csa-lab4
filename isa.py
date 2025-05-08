@@ -166,7 +166,7 @@ def from_bytes(binary_code):
         if opcode is None:
             raise ValueError(f"Неизвестный бинарный код операции: {opcode_bin:#X} в строке: {line}")
         instr = {"index": index, "opcode": opcode}
-        if opcode in (Opcode.IF, Opcode.LIT):
+        if opcode in (Opcode.IF, Opcode.LIT, Opcode.JUMP):
             instr["arg"] = arg
         structured_code.append(instr)
     return structured_code

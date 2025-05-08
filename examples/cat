@@ -1,14 +1,23 @@
 _start:
-    lit 5
     key
+    lit 48
+    swap
+    -
+    lit 5
+    swap
     !
 while:
+    key
+    emit
     lit 5
     @
     lit 1
     swap
     -
+    lit 5
+    swap
     if end
+    !
     jump while
 end:
     halt
