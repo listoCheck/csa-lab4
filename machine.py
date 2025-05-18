@@ -22,7 +22,7 @@ class Datapath:
         self.input_buffer = input_buffer
         self.output_buffer = []
 
-
+# надо сделать схему с вентилями и дальше в логгинге выполнения каждый команды написать какие вентили под нее я открываю
 class ControlUnit:
     program = None  # Память команд.
     program_counter = None  # Счётчик команд. Инициализируется нулём.
@@ -131,6 +131,8 @@ class ControlUnit:
             self.signal_latch_program_counter(sel_next=True)
             return
 
+
+        #это надо вилкой почистить, потому что умножение делается через сложение лол
         if opcode is Opcode.MUL:
             # Умножаем значения стека
             self.data_path.stack_first, self.data_path.stack_second = self.data_path.stack_first * self.data_path.stack_second, self.data_path.stack_first

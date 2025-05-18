@@ -61,13 +61,12 @@ def text2terms(text):
                 ic += 1
             if word.endswith(":") or word in symbols() or word in labels:
                 terms.append(Term(line_num, pos, word))
-                print(Term(line_num, pos, word))
             else:
                 try:
-                    int(word)  # если это число
+                    int(word)
                     terms.append(Term(line_num, pos, word))
                 except ValueError:
-                    pass  # не команда, не метка, не число — пропускаем
+                    pass
     return terms, ic
 
 
@@ -84,7 +83,6 @@ def translate(text):
         else:
             pc_counter += 1
 
-    # Присваиваем меткам правильные адреса
     addr = 0
     for term in terms:
         if term.symbol.endswith(":"):
