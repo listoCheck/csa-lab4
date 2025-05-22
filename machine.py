@@ -14,7 +14,7 @@ class Datapath:
     a = None
     tos = None
     program_memory_size = None
-
+    b = None
     def __init__(self, data_memory_size, input_buffer, program):
         self.program = program
         self.program_counter = 0
@@ -29,6 +29,7 @@ class Datapath:
         self.output_buffer = []
         self.a = 0
         self.tos = 0
+        self.b = []
 
     def put_in_output_buffer(self, char):
         self.output_buffer.append(char)
@@ -131,6 +132,16 @@ class Datapath:
         self.stack_first = self.stack_second
         self.stack_second = 0
 
+    def push_b(self):
+        self.b.append(self.program_counter)
+
+    def pop_b(self):
+        self.tos = self.b[-1]
+        self.b = self.b[:-1]
+
+    def tos_to_pc(self):
+        self.program_counter = self.tos
+
 
 # надо сделать схему с вентилями и дальше в логгинге выполнения каждый команды написать какие вентили под нее я открываю
 class ControlUnit:
@@ -170,7 +181,7 @@ class ControlUnit:
         for microcmd in microcmds:
             microcmd(self, instr)
             self.tick()
-        if not self.halted and opcode not in (Opcode.JUMP, Opcode.EXIT, Opcode.HALT):
+        if not self.halted and opcode not in (Opcode.JUMP, Opcode.EXIT, Opcode.HALT, Opcode.CALL):
             self.data_path.program_counter += 1
 
     def micro_push(self, instr):
@@ -342,6 +353,15 @@ class ControlUnit:
         print(f"[tick {self._tick}] TOS -> FIRST_STACK")
         self.data_path.save_tos()
 
+    def save_comeback_adr(self, instr):
+        print(f"[tick {self._tick}] COMEBACK ADR")
+        self.data_path.push_b()
+
+    def micro_ret(self, insr):
+        print(f"[tick {self._tick}] RET")
+        self.data_path.pop_b()
+        self.data_path.tos_to_pc()
+
     def __str__(self):
         return (f"Tick: {self._tick}, "
                 f"PC: {self.data_path.program_counter}, "
@@ -349,7 +369,8 @@ class ControlUnit:
                 f"Input: {self.data_path.input_buffer}, "
                 f"Output: {self.data_path.output_buffer}, "
                 f"tos: {self.data_path.tos}, "
-                f"a: {self.data_path.a}")
+                f"a: {self.data_path.a}, "
+                f"b: {self.data_path.b}")
 
     def __repr__(self):
         state_repr = "TICK: {:3} PC: {:3} ADDR: {:3} MEM[ADDR]: {:3} STACK: [{}, {}] A: {}".format(
@@ -452,6 +473,8 @@ microprogram = {
     Opcode.LIT: [ControlUnit.micro_lit_1, ControlUnit.micro_lit_2],
     Opcode.EMIT: [ControlUnit.micro_emit_1],
     Opcode.JUMP: [ControlUnit.micro_jump_1, ControlUnit.micro_jump_2],
+    Opcode.CALL: [ControlUnit.save_comeback_adr, ControlUnit.micro_jump_1, ControlUnit.micro_jump_2],
+    Opcode.RET: [ControlUnit.micro_ret],
 }
 
 
@@ -459,7 +482,6 @@ def main(code_file, input_file):
     with open(code_file, "r", encoding="utf-8") as file:
         text_code = file.read()
     code = from_bytes(text_code)
-    print(code)
     with open(input_file, encoding="utf-8") as file:
         input_text = file.read()
         input_tokens = list(input_text)

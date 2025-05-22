@@ -36,6 +36,8 @@ class Opcode(str, Enum):
     LIT = "lit" # Ввод числа
     EMIT = "emit" # Вывод символа с вершины стека
     JUMP = "jump"
+    CALL = "call"
+    RET = "ret"
 
 
 
@@ -77,6 +79,8 @@ opcode_to_binary = {
     Opcode.LIT:      0x16,
     Opcode.EMIT:     0x17,
     Opcode.JUMP:     0x18,
+    Opcode.CALL:     0x19,
+    Opcode.RET:      0x20,
 }
 
 # Словарь соответствия бинарных значений к операциям
@@ -106,6 +110,8 @@ binary_to_opcode = {
     0x16: Opcode.LIT,
     0x17: Opcode.EMIT,
     0x18: Opcode.JUMP,
+    0x19: Opcode.CALL,
+    0x20: Opcode.RET,
 }
 
 def to_bytes(code):
@@ -140,7 +146,7 @@ def to_hex(code):
             mnemonic = f"UNKNOWN_{opcode_bin:02X}"
         else:
             mnemonic = opcode.value
-            if opcode in (Opcode.IF, Opcode.LIT, Opcode.JUMP):
+            if opcode in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL):
                 mnemonic += f" {arg}"
 
         hex_word = f"{word:08X}"
@@ -166,7 +172,7 @@ def from_bytes(binary_code):
         if opcode is None:
             raise ValueError(f"Неизвестный бинарный код операции: {opcode_bin:#X} в строке: {line}")
         instr = {"index": index, "opcode": opcode}
-        if opcode in (Opcode.IF, Opcode.LIT, Opcode.JUMP):
+        if opcode in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL):
             instr["arg"] = arg
         structured_code.append(instr)
     return structured_code

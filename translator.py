@@ -6,7 +6,7 @@ from isa import Opcode, Term, to_bytes, to_hex, write_json
 def symbols():
     return {
         "drop", "dup", "swap", "+", "-", "*", "/", "mod", "negate", "=", "<", ">", "and", "or", "xor", "invert",
-        "if", "exit", "!", "@", "key", "halt", "lit", "emit", "jump"
+        "if", "exit", "!", "@", "key", "halt", "lit", "emit", "jump", "call", "ret"
     }
 
 
@@ -36,7 +36,9 @@ def symbol2opcode(symbol):
         "halt": Opcode.HALT,
         "lit": Opcode.LIT,
         "emit": Opcode.EMIT,
-        "JUMP": Opcode.JUMP,
+        "jump": Opcode.JUMP,
+        "call": Opcode.CALL,
+        "ret": Opcode.RET,
     }.get(symbol)
 
 
@@ -53,12 +55,9 @@ def text2terms(text):
                 labels.add(word[:-1])
 
     # Парсим термы
-    ic = 0
     for line_num, line in enumerate(lines, 1):
         words = line.split()
         for pos, word in enumerate(words, 1):
-            if word in symbols():
-                ic += 1
             if word.endswith(":") or word in symbols() or word in labels:
                 terms.append(Term(line_num, pos, word))
             else:
@@ -67,14 +66,15 @@ def text2terms(text):
                     terms.append(Term(line_num, pos, word))
                 except ValueError:
                     pass
-    return terms, ic
+    return terms
 
 
 def translate(text):
-    terms, normal_numeration = text2terms(text)
+    terms = text2terms(text)
 
     labels = {}
     pc_counter = 0
+    print(terms)
     for term in terms:
         if term.symbol.endswith(":"):
             label = term.symbol[:-1]
@@ -95,7 +95,7 @@ def translate(text):
         counter = 0
         if terms[i].symbol.endswith(":"):
             for j in range(i):
-                if terms[j].symbol in ("if", "lit", "jump"):
+                if terms[j].symbol in ("if", "lit", "jump", "call"):
                     counter += 1
             new_labels[terms[i].symbol[:-1]] = labels[terms[i].symbol[:-1]] - counter
 
@@ -115,7 +115,6 @@ def translate(text):
             assert i + 1 < len(filtered), f"После 'if' на строке {term.line} нет метки"
             label = filtered[i + 1].symbol
             assert label in labels, f"Метка не определена: {label}"
-            print("asdasd", labels[label], normal_numeration)
             code.append({
                 "index": pc,
                 "opcode": Opcode.IF,
@@ -139,12 +138,23 @@ def translate(text):
             })
             i += 2
         elif sym == "jump":
-            assert i + 1 < len(filtered), f"После 'if' на строке {term.line} нет метки"
+            assert i + 1 < len(filtered), f"После 'jump' на строке {term.line} нет метки"
             label = filtered[i + 1].symbol
             assert label in labels, f"Метка не определена: {label}"
             code.append({
                 "index": pc,
                 "opcode": Opcode.JUMP,
+                "arg": new_labels[label],
+                "term": term
+            })
+            i += 2
+        elif sym == "call":
+            assert i + 1 < len(filtered), f"После 'call' на строке {term.line} нет метки"
+            label = filtered[i + 1].symbol
+            assert label in labels, f"Метка не определена: {label}"
+            code.append({
+                "index": pc,
+                "opcode": Opcode.CALL,
                 "arg": new_labels[label],
                 "term": term
             })
