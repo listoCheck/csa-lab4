@@ -23,8 +23,6 @@ class Datapath:
         self.data_memory_size = data_memory_size
         self.data_memory = program + [0] * data_memory_size
         self.stack = [0, 0]
-        # self.stack_first = self.stack[-1]
-        # self.stack_second = self.stack[-2]
         self.stack_first = 0
         self.stack_second = 0
         self.input_buffer = input_buffer
@@ -43,9 +41,11 @@ class Datapath:
             print(f"Store {val} to address {addr}")
         else:
             raise Exception("Store address out of range")
+        self.stack = self.stack[:-2]
 
     def read_from_memory(self):
         addr = self.stack[-1] + self.program_memory_size
+        self.stack = self.stack[:-1]
         if 0 <= addr < self.data_memory_size:
             val = self.data_memory[addr]
             print(f"Fetched {val} from address {addr}")
