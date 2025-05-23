@@ -10,6 +10,7 @@ while:
     @
     lit 1
     call rep
+    dup
     if end
     !
     jump while

@@ -1,3 +1,63 @@
+""" ControlUnit.micro_swap,
+    ControlUnit.micro_stack_to_a,
+    ControlUnit.micro_tos_to_stack,
+    ControlUnit.micro_a_to_tos,
+    ControlUnit.micro_add_1,
+    ControlUnit.micro_sub_1,
+    ControlUnit.micro_mul_1,
+    ControlUnit.micro_div_1,
+    ControlUnit.micro_mod_1,
+    ControlUnit.micro_negate,
+    ControlUnit.micro_equal,
+    ControlUnit.micro_less,
+    ControlUnit.micro_greater,
+    ControlUnit.micro_and,
+    ControlUnit.micro_or,
+    ControlUnit.micro_xor,
+    ControlUnit.micro_invert,
+    ControlUnit.micro_if_2,
+    ControlUnit.micro_fetch_1,
+    ControlUnit.micro_key_1,
+    ControlUnit.micro_store_1,
+    ControlUnit.micro_lit_1,
+    ControlUnit.micro_lit_2,
+    ControlUnit.save_comeback_adr,
+    ControlUnit.micro_jump_1,
+    ControlUnit.micro_ret,
+    ControlUnit.micro_drop,
+    ControlUnit.micro_dup,
+    ControlUnit.micro_halt
+]
+
+mapping = {
+    Opcode.SWAP: 0,
+    Opcode.ADD: 4,
+    Opcode.SUB: 5,
+    Opcode.MUL: 6,
+    Opcode.DIV: 7,
+    Opcode.MOD: 8,
+    Opcode.NEGATE: 9,
+    Opcode.EQUAL: 10,
+    Opcode.LESS: 11,
+    Opcode.GREATER: 12,
+    Opcode.AND: 13,
+    Opcode.OR: 14,
+    Opcode.XOR: 15,
+    Opcode.INVERT: 16,
+    Opcode.IF: 17,
+    Opcode.FETCH: 18,
+    Opcode.KEY: 19,
+    Opcode.STORE: 20,
+    Opcode.LIT: 21,
+    Opcode.CALL: 23,
+    Opcode.JUMP: 24,
+    Opcode.RET: 25,
+    Opcode.DROP: 26,
+    Opcode.DUP: 27,
+    Opcode.HALT: 28
+}"""
+
+
 import os
 import sys
 from isa import Opcode, Term, to_bytes, to_hex, write_json
@@ -208,3 +268,4 @@ if __name__ == "__main__":
     assert len(sys.argv) == 3, "Wrong arguments: translator.py <input_file> <target_file>"
     _, source, target = sys.argv
     main(source, target)
+

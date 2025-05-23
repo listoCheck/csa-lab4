@@ -15,6 +15,7 @@ class Datapath:
     tos = None
     program_memory_size = None
     b = None
+
     def __init__(self, data_memory_size, input_buffer, program):
         self.program = program
         self.program_counter = 0
@@ -62,7 +63,6 @@ class Datapath:
 
     def write_tos(self):
         self.tos = self.stack[-1]
-        print(self.tos)
         self.stack = self.stack[:-1]
 
     def stack_to_a(self):
@@ -149,6 +149,7 @@ class ControlUnit:
     data_path = None  # Блок обработки данных.
     _tick = None  # Текущее модельное время процессора (в тактах). Инициализируется нулём.
     input_index = None
+    mpc = None
 
     def __init__(self, data_path):
         self.mpc = 0
@@ -157,6 +158,7 @@ class ControlUnit:
         self.step = 0
         self.input_index = 0
         self.halted = False
+        self.rep_swap_dup = False
 
     def tick(self):
         """Продвинуть модельное время процессора вперёд на один такт."""
@@ -177,10 +179,18 @@ class ControlUnit:
 
         instr = self.data_path.data_memory[self.data_path.program_counter]
         opcode = instr["opcode"]
-        microcmds = microprogram.get(opcode, [])
-        for microcmd in microcmds:
-            microcmd(self, instr)
+        print(opcode)
+        self.mpc = mapping.get(opcode, [])
+        print(self.mpc)
+        prev_mpc = self.mpc
+        mc = mp[prev_mpc]
+        mc(self, instr)
+        while prev_mpc != self.mpc:
+            prev_mpc = self.mpc
+            mc = mp[self.mpc]
+            mc(self, instr)
             self.tick()
+
         if not self.halted and opcode not in (Opcode.JUMP, Opcode.EXIT, Opcode.HALT, Opcode.CALL):
             self.data_path.program_counter += 1
 
@@ -197,82 +207,115 @@ class ControlUnit:
     # DUP: дублирует верхний элемент стека
     def micro_dup(self, instr):
         print(f"[tick {self._tick}] DUP")
-        self.data_path.stack_push(self.data_path.stack_first)
+        self.data_path.tos = self.data_path.stack[-1]
+        self.data_path.a = self.data_path.stack[-1]
+        self.data_path.stack = self.data_path.stack[:-1]
+        self.mpc -=  26
+        self.rep_swap_dup = True
 
     # SWAP: меняет местами верхние два элемента стека
     def micro_swap(self, instr):
         print(f"[tick {self._tick}] SWAP")
-        self.data_path.alu("o")
+        self.micro_tos(instr)
+        self.mpc += 1
+        self.rep_swap_dup = True
 
     # ADD
     def micro_add_1(self, instr):
         print(f"[tick {self._tick}] ADD")
+        self.micro_tos(instr)
         self.data_path.alu("+")
+        self.mpc -= 2
 
     # SUB
     def micro_sub_1(self, instr):
         print(f"[tick {self._tick}] SUB")
+        self.micro_tos(instr)
         self.data_path.alu("-")
+        self.mpc -= 3
 
     # MUL
     def micro_mul_1(self, instr):
         print(f"[tick {self._tick}] MUL")
+        self.micro_tos(instr)
         self.data_path.alu("*")
+        self.mpc -= 4
 
     # DIV
     def micro_div_1(self, instr):
         print(f"[tick {self._tick}] DIV")
+        self.micro_tos(instr)
         self.data_path.alu("/")
+        self.mpc -= 5
 
     # MOD
     def micro_mod_1(self, instr):
         print(f"[tick {self._tick}] MOD")
+        self.micro_tos(instr)
         self.data_path.alu("%")
+        self.mpc -= 6
 
     # NEGATE
     def micro_negate(self, instr):
         print(f"[tick {self._tick}] NEGATE")
+        self.micro_tos(instr)
         self.data_path.alu("--")
+        self.mpc -= 7
 
     # EQUAL (=)
     def micro_equal(self, instr):
         print(f"[tick {self._tick}] EQUAL")
+        self.micro_tos(instr)
         self.data_path.alu("==")
+        self.mpc -= 8
 
     # LESS (<)
     def micro_less(self, instr):
         print(f"[tick {self._tick}] LESS")
+        self.micro_tos(instr)
         self.data_path.alu(">")
+        self.mpc -= 9
 
     # GREATER (>)
     def micro_greater(self, instr):
         print(f"[tick {self._tick}] GREATER")
+        self.micro_tos(instr)
         self.data_path.alu("<")
+        self.mpc -= 10
 
     # AND
     def micro_and(self, instr):
         print(f"[tick {self._tick}] AND")
+        self.micro_tos(instr)
         self.data_path.alu("&")
+        self.mpc -= 11
 
     # OR
     def micro_or(self, instr):
         print(f"[tick {self._tick}] OR")
+        self.micro_tos(instr)
         self.data_path.alu("|")
+        self.mpc -= 12
 
     # XOR
     def micro_xor(self, instr):
         print(f"[tick {self._tick}] XOR")
+        self.micro_tos(instr)
         self.data_path.alu("^")
+        self.mpc -= 13
 
     # INVERT
     def micro_invert(self, instr):
         print(f"[tick {self._tick}] INVERT")
         self.data_path.alu("~")
+        self.mpc -= 14
 
     # IF (условный переход, реализуем как простой переход, если acc != 0)
     def micro_if_1(self, instr):
         print(f"[tick {self._tick}] IF - проверка условия")
-        self.data_path.tos = self.data_path.stack[-1]
+        self.micro_tos(instr)
+        self.mpc += 1
+        print("tos:", self.data_path.tos)
 
     def micro_if_2(self, instr):
         addr = instr['arg']
@@ -281,6 +324,7 @@ class ControlUnit:
             print(f"[tick {self._tick}] IF - переход на {addr}")
         else:
             print(f"[tick {self._tick}] IF - переход не требуется (не ноль)")
+
 
     # STORE - записать в память по адресу в stack_second значение из stack_first
     def micro_store_1(self, instr):
@@ -291,6 +335,7 @@ class ControlUnit:
     def micro_fetch_1(self, instr):
         print(f"[tick {self._tick}] FETCH")
         self.data_path.tos = self.data_path.read_from_memory()
+        self.mpc -= 17
 
     # KEY - получить символ из входного буфера
     def micro_key_1(self, instr):
@@ -302,6 +347,7 @@ class ControlUnit:
         else:
             self.data_path.tos = 0
             print("Input buffer empty")
+        self.mpc -= 18
 
     # HALT
     def micro_halt(self, instr):
@@ -312,6 +358,7 @@ class ControlUnit:
     def micro_lit_1(self, instr):
         print(f"[tick {self._tick}] LIT - подготовка")
         print(f"[tick {self._tick}] IR[arg] -> BUS")
+        self.mpc += 1
 
     def micro_lit_2(self, instr):
         print(f"[tick {self._tick}] LIT - загрузка значения {instr['arg']}")
@@ -327,6 +374,11 @@ class ControlUnit:
         print(f"Output char '{value}'")
         self.data_path.stack = self.data_path.stack[:-1]
 
+    def save_comeback_adr(self, instr):
+        print(f"[tick {self._tick}] COMEBACK ADR")
+        self.data_path.push_b()
+        self.mpc += 1
+
     # JUMP - перейти на адрес, заданный в аргументе инструкции
     def micro_jump_1(self, instr):
         print(f"[tick {self._tick}] JUMP")
@@ -334,28 +386,28 @@ class ControlUnit:
         print(f"Jump to {target}")
         self.data_path.program_counter = target
 
-    def micro_jump_2(self, instr):
-        self.mpc = -1
-
     def micro_tos(self, instr):
         print(f"[tick {self._tick}] FIRST_STACK -> TOS")
         self.data_path.write_tos()
+        return
 
     def micro_stack_to_a(self, instr):
         print(f"[tick {self._tick}] FIRST_STACK -> A")
         self.data_path.stack_to_a()
+        self.mpc += 1
 
     def micro_a_to_tos(self, instr):
         print(f"[tick {self._tick}] A -> TOS")
         self.data_path.a_to_tos()
+        self.mpc -= 1
 
     def micro_tos_to_stack(self, instr):
         print(f"[tick {self._tick}] TOS -> FIRST_STACK")
         self.data_path.save_tos()
+        if self.rep_swap_dup:
+            self.mpc += 1
+            self.rep_swap_dup = False
 
-    def save_comeback_adr(self, instr):
-        print(f"[tick {self._tick}] COMEBACK ADR")
-        self.data_path.push_b()
 
     def micro_ret(self, insr):
         print(f"[tick {self._tick}] RET")
@@ -382,7 +434,7 @@ class ControlUnit:
             self.data_path.stack_second,
             self.data_path.a,
         )
-        #print(self.data_path.program_counter, len(self.data_path.program) - 1)
+        # print(self.data_path.program_counter, len(self.data_path.program) - 1)
         if self.data_path.program_counter < len(self.data_path.program) - 1:
             instr = self.data_path.program[self.data_path.program_counter]
             opcode = instr["opcode"]
@@ -415,66 +467,68 @@ def simulation(code, input_tokens, data_memory_size, limit):
     return "".join(data_path.output_buffer), control_unit.get_tick()
 
 
-def mpc_of_opcode(opcode: int) -> int:
-    mapping = {
-        Opcode.DROP: 0,
-        Opcode.DUP: 1,
-        Opcode.SWAP: 2,
-        Opcode.ADD: 3,
-        Opcode.SUB: 4,
-        Opcode.MUL: 5,
-        Opcode.DIV: 6,
-        Opcode.MOD: 7,
-        Opcode.NEGATE: 8,
-        Opcode.EQUAL: 9,
-        Opcode.LESS: 10,
-        Opcode.GREATER: 11,
-        Opcode.AND: 12,
-        Opcode.OR: 13,
-        Opcode.XOR: 14,
-        Opcode.INVERT: 15,
-        Opcode.IF: 16,
-        Opcode.EXIT: 17,
-        Opcode.STORE: 18,
-        Opcode.FETCH: 19,
-        Opcode.KEY: 20,
-        Opcode.HALT: 21,
-        Opcode.LIT: 22,
-        Opcode.EMIT: 23,
-        Opcode.JUMP: 24,
-    }
-    return mapping.get(opcode, 0)
-
-
 # Программа микрокода - список списков сигналов
-microprogram = {
-    Opcode.DROP: [ControlUnit.micro_drop],
-    Opcode.DUP: [ControlUnit.micro_dup],
-    Opcode.SWAP: [ControlUnit.micro_tos, ControlUnit.micro_stack_to_a, ControlUnit.micro_tos_to_stack,
-                  ControlUnit.micro_a_to_tos, ControlUnit.micro_tos_to_stack],
-    Opcode.ADD: [ControlUnit.micro_tos, ControlUnit.micro_add_1, ControlUnit.micro_tos_to_stack],
-    Opcode.SUB: [ControlUnit.micro_tos, ControlUnit.micro_sub_1, ControlUnit.micro_tos_to_stack],
-    Opcode.MUL: [ControlUnit.micro_tos, ControlUnit.micro_mul_1, ControlUnit.micro_tos_to_stack],
-    Opcode.DIV: [ControlUnit.micro_tos, ControlUnit.micro_div_1, ControlUnit.micro_tos_to_stack],
-    Opcode.MOD: [ControlUnit.micro_tos, ControlUnit.micro_mod_1, ControlUnit.micro_tos_to_stack],
-    Opcode.NEGATE: [ControlUnit.micro_tos, ControlUnit.micro_negate, ControlUnit.micro_tos_to_stack],
-    Opcode.EQUAL: [ControlUnit.micro_tos, ControlUnit.micro_equal, ControlUnit.micro_tos_to_stack],
-    Opcode.LESS: [ControlUnit.micro_tos, ControlUnit.micro_less, ControlUnit.micro_tos_to_stack],
-    Opcode.GREATER: [ControlUnit.micro_tos, ControlUnit.micro_greater, ControlUnit.micro_tos_to_stack],
-    Opcode.AND: [ControlUnit.micro_tos, ControlUnit.micro_and, ControlUnit.micro_tos_to_stack],
-    Opcode.OR: [ControlUnit.micro_tos, ControlUnit.micro_or, ControlUnit.micro_tos_to_stack],
-    Opcode.XOR: [ControlUnit.micro_tos, ControlUnit.micro_xor, ControlUnit.micro_tos_to_stack],
-    Opcode.INVERT: [ControlUnit.micro_tos, ControlUnit.micro_invert, ControlUnit.micro_tos_to_stack],
-    Opcode.IF: [ControlUnit.micro_tos, ControlUnit.micro_if_2, ControlUnit.micro_tos_to_stack],
-    Opcode.STORE: [ControlUnit.micro_store_1],
-    Opcode.FETCH: [ControlUnit.micro_fetch_1, ControlUnit.micro_tos_to_stack],
-    Opcode.KEY: [ControlUnit.micro_key_1, ControlUnit.micro_tos_to_stack],
-    Opcode.HALT: [ControlUnit.micro_halt],
-    Opcode.LIT: [ControlUnit.micro_lit_1, ControlUnit.micro_lit_2],
-    Opcode.EMIT: [ControlUnit.micro_emit_1],
-    Opcode.JUMP: [ControlUnit.micro_jump_1, ControlUnit.micro_jump_2],
-    Opcode.CALL: [ControlUnit.save_comeback_adr, ControlUnit.micro_jump_1, ControlUnit.micro_jump_2],
-    Opcode.RET: [ControlUnit.micro_ret],
+mp = [
+    ControlUnit.micro_swap,
+    ControlUnit.micro_stack_to_a,
+    ControlUnit.micro_tos_to_stack,
+    ControlUnit.micro_a_to_tos,
+    ControlUnit.micro_add_1,
+    ControlUnit.micro_sub_1,
+    ControlUnit.micro_mul_1,
+    ControlUnit.micro_div_1,
+    ControlUnit.micro_mod_1,
+    ControlUnit.micro_negate,
+    ControlUnit.micro_equal,
+    ControlUnit.micro_less,
+    ControlUnit.micro_greater,
+    ControlUnit.micro_and,
+    ControlUnit.micro_or,
+    ControlUnit.micro_xor,
+    ControlUnit.micro_invert,
+    ControlUnit.micro_if_1,
+    ControlUnit.micro_if_2,
+    ControlUnit.micro_fetch_1,
+    ControlUnit.micro_key_1,
+    ControlUnit.micro_store_1,
+    ControlUnit.micro_lit_1,
+    ControlUnit.micro_lit_2,
+    ControlUnit.save_comeback_adr,
+    ControlUnit.micro_jump_1,
+    ControlUnit.micro_ret,
+    ControlUnit.micro_drop,
+    ControlUnit.micro_dup,
+    ControlUnit.micro_emit_1,
+    ControlUnit.micro_halt
+]
+
+mapping = {
+    Opcode.SWAP: 0,
+    Opcode.ADD: 4,
+    Opcode.SUB: 5,
+    Opcode.MUL: 6,
+    Opcode.DIV: 7,
+    Opcode.MOD: 8,
+    Opcode.NEGATE: 9,
+    Opcode.EQUAL: 10,
+    Opcode.LESS: 11,
+    Opcode.GREATER: 12,
+    Opcode.AND: 13,
+    Opcode.OR: 14,
+    Opcode.XOR: 15,
+    Opcode.INVERT: 16,
+    Opcode.IF: 17,
+    Opcode.FETCH: 19,
+    Opcode.KEY: 20,
+    Opcode.STORE: 21,
+    Opcode.LIT: 22,
+    Opcode.CALL: 24,
+    Opcode.JUMP: 25,
+    Opcode.RET: 26,
+    Opcode.DROP: 27,
+    Opcode.DUP: 28,
+    Opcode.EMIT: 29,
+    Opcode.HALT: 30
 }
 
 
