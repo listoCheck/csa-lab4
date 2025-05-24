@@ -33,3 +33,5 @@
 **!** – Записывает значение во вторую ячейку памяти (addr value !).<br>
 **@** – Читает значение из памяти (addr @).<br>
 **KEY** – Считывает один символ с клавиатуры и кладет его код в стек.<br>
+# Схемы
+https://drive.google.com/file/d/1yH4xpJZjwfba7quabQ0sjdoASbY9od4I/view?usp=sharing
