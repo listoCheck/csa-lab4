@@ -1,7 +1,5 @@
 start:
-    lit 10
-    lit 20
-    +
+    lit 10 lit 20 +
     if end
     lit 30
     -

@@ -1,0 +1,83 @@
+_start:
+    key
+    dup
+    if name
+    lit 48
+    call rep
+    !
+    call hello
+while:
+    key
+    emit
+    lit 5
+    @
+    lit 1
+    call rep
+    dup
+    if end
+    !
+    jump while
+rep:
+    swap
+    -
+    lit 5
+    swap
+    ret
+end:
+    lit 33
+    emit
+    halt
+hello:
+    lit 72
+    emit
+    lit 101
+    emit
+    lit 108
+    emit
+    lit 108
+    emit
+    lit 111
+    emit
+    lit 44
+    emit
+    lit 32
+    emit
+    ret
+name:
+    lit 87
+    emit
+    lit 104
+    emit
+    lit 97
+    emit
+    lit 116
+    emit
+    lit 32
+    emit
+    lit 105
+    emit
+    lit 115
+    emit
+    lit 32
+    emit
+    lit 121
+    emit
+    lit 111
+    emit
+    lit 117
+    emit
+    lit 114
+    emit
+    lit 32
+    emit
+    lit 110
+    emit
+    lit 97
+    emit
+    lit 109
+    emit
+    lit 101
+    emit
+    lit 63
+    emit
+    halt

@@ -1,0 +1,122 @@
+_start:
+    key
+    lit 48  ; чтобы сделать нормальное количество букв (паскаль строкой)
+    call rep
+    dup
+    lit 1
+    swap
+    !
+    !
+    lit 2
+    lit 0
+    !
+while:
+    key
+    lit 0
+    @
+    lit 1
+    @       ; это нужно чтобы найти число, которое прибавить к адресу
+    -
+    lit 5   ; адрес массива
+    +
+    swap
+    !
+    lit 0
+    @
+    lit 1
+    call rep
+    dup
+    if next
+    !
+    lit 2
+    dup
+    @
+    lit 1
+    +
+    jump while
+rep:
+    swap
+    -
+    lit 0
+    swap
+    ret
+next:
+    lit 1
+    @
+    lit 0
+    swap
+    !
+repeat:
+    lit 3
+    @
+    lit 1
+    +
+    lit 0
+    @
+    -
+    if check
+    call get_nums
+    swap
+    >
+    dup
+    if swap_nums
+    lit 4
+    @
+    +
+    lit 4
+    swap
+    !
+    jump continue
+continue:
+    lit 3
+    dup
+    @
+    lit 1
+    +
+    !
+    jump repeat
+swap_nums:
+    call get_nums
+    swap
+    call get_addr
+    swap
+    !
+    call get_addr
+    lit 1
+    +
+    swap
+    !
+    jump continue
+get_addr:
+    lit 5   ; адрес массива
+    lit 3
+    @
+    +
+    ret
+get_nums:
+    call get_addr
+    dup
+    lit 1
+    +
+    @
+    swap
+    @
+    ret
+check:
+    lit 4
+    @
+    lit 1
+    +
+    lit 0
+    @
+    -
+    if end
+    lit 4
+    lit 0
+    !
+    lit 3
+    lit 0
+    !
+    jump repeat
+end:
+    halt

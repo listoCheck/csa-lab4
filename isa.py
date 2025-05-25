@@ -35,9 +35,9 @@ class Opcode(str, Enum):
     HALT = "halt"  # Останов
     LIT = "lit" # Ввод числа
     EMIT = "emit" # Вывод символа с вершины стека
-    JUMP = "jump"
-    CALL = "call"
-    RET = "ret"
+    JUMP = "jump" # Переход на метку
+    CALL = "call" # Переход на процедуру
+    RET = "ret" # Возвращение из процедуры
 
 
 
@@ -71,16 +71,15 @@ opcode_to_binary = {
     Opcode.XOR:      0x0E,
     Opcode.INVERT:   0x0F,
     Opcode.IF:       0x10,
-    Opcode.EXIT:     0x11,
-    Opcode.STORE:    0x12,
-    Opcode.FETCH:    0x13,
-    Opcode.KEY:      0x14,
-    Opcode.HALT:     0x15,
-    Opcode.LIT:      0x16,
-    Opcode.EMIT:     0x17,
-    Opcode.JUMP:     0x18,
-    Opcode.CALL:     0x19,
-    Opcode.RET:      0x20,
+    Opcode.STORE:    0x11,
+    Opcode.FETCH:    0x12,
+    Opcode.KEY:      0x13,
+    Opcode.HALT:     0x14,
+    Opcode.LIT:      0x15,
+    Opcode.EMIT:     0x16,
+    Opcode.JUMP:     0x17,
+    Opcode.CALL:     0x18,
+    Opcode.RET:      0x19,
 }
 
 # Словарь соответствия бинарных значений к операциям
@@ -102,16 +101,15 @@ binary_to_opcode = {
     0x0E: Opcode.XOR,
     0x0F: Opcode.INVERT,
     0x10: Opcode.IF,
-    0x11: Opcode.EXIT,
-    0x12: Opcode.STORE,
-    0x13: Opcode.FETCH,
-    0x14: Opcode.KEY,
-    0x15: Opcode.HALT,
-    0x16: Opcode.LIT,
-    0x17: Opcode.EMIT,
-    0x18: Opcode.JUMP,
-    0x19: Opcode.CALL,
-    0x20: Opcode.RET,
+    0x11: Opcode.STORE,
+    0x12: Opcode.FETCH,
+    0x13: Opcode.KEY,
+    0x14: Opcode.HALT,
+    0x15: Opcode.LIT,
+    0x16: Opcode.EMIT,
+    0x17: Opcode.JUMP,
+    0x18: Opcode.CALL,
+    0x19: Opcode.RET,
 }
 
 def to_bytes(code):

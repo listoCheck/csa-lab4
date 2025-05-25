@@ -14,7 +14,8 @@ class Datapath:
     a = None
     tos = None
     program_memory_size = None
-    b = None
+    return_stack = None
+
 
     def __init__(self, data_memory_size, input_buffer, program):
         self.program = program
@@ -30,7 +31,7 @@ class Datapath:
         self.output_buffer = []
         self.a = 0
         self.tos = 0
-        self.b = []
+        self.return_stack = []
 
     def put_in_output_buffer(self, char):
         self.output_buffer.append(char)
@@ -60,6 +61,7 @@ class Datapath:
             return True
         else:
             return False
+
 
     def write_tos(self):
         self.tos = self.stack[-1]
@@ -112,6 +114,7 @@ class Datapath:
             value = int(self.tos == self.stack_first)
             self.stack = self.stack[:-1]
         if operand == ">":
+            print(self.tos, self.stack_first)
             value = int(self.tos > self.stack_first)
             self.stack = self.stack[:-1]
         if operand == "<":
@@ -132,12 +135,12 @@ class Datapath:
         self.stack_first = self.stack_second
         self.stack_second = 0
 
-    def push_b(self):
-        self.b.append(self.program_counter)
+    def push_return_stack(self):
+        self.return_stack.append(self.program_counter)
 
-    def pop_b(self):
-        self.tos = self.b[-1]
-        self.b = self.b[:-1]
+    def pop_return_stack(self):
+        self.tos = self.return_stack[-1]
+        self.return_stack = self.return_stack[:-1]
 
     def tos_to_pc(self):
         self.program_counter = self.tos
@@ -185,10 +188,12 @@ class ControlUnit:
         prev_mpc = self.mpc
         mc = mp[prev_mpc]
         mc(self, instr)
+        self.tick()
         while prev_mpc != self.mpc:
             prev_mpc = self.mpc
             mc = mp[self.mpc]
             mc(self, instr)
+
             self.tick()
 
         if not self.halted and opcode not in (Opcode.JUMP, Opcode.EXIT, Opcode.HALT, Opcode.CALL):
@@ -217,6 +222,7 @@ class ControlUnit:
     def micro_swap(self, instr):
         print(f"[tick {self._tick}] SWAP")
         self.micro_tos(instr)
+        self.tick()
         self.mpc += 1
         self.rep_swap_dup = True
 
@@ -273,14 +279,14 @@ class ControlUnit:
     def micro_less(self, instr):
         print(f"[tick {self._tick}] LESS")
         self.micro_tos(instr)
-        self.data_path.alu(">")
+        self.data_path.alu("<")
         self.mpc -= 9
 
     # GREATER (>)
     def micro_greater(self, instr):
         print(f"[tick {self._tick}] GREATER")
         self.micro_tos(instr)
-        self.data_path.alu("<")
+        self.data_path.alu(">")
         self.mpc -= 10
 
     # AND
@@ -320,7 +326,7 @@ class ControlUnit:
     def micro_if_2(self, instr):
         addr = instr['arg']
         if self.data_path.flag_zero():
-            self.data_path.program_counter = addr
+            self.data_path.program_counter = addr - 1
             print(f"[tick {self._tick}] IF - переход на {addr}")
         else:
             print(f"[tick {self._tick}] IF - переход не требуется (не ноль)")
@@ -357,12 +363,10 @@ class ControlUnit:
     # LIT - загрузить литерал из инструкции
     def micro_lit_1(self, instr):
         print(f"[tick {self._tick}] LIT - подготовка")
-        print(f"[tick {self._tick}] IR[arg] -> BUS")
         self.mpc += 1
 
     def micro_lit_2(self, instr):
         print(f"[tick {self._tick}] LIT - загрузка значения {instr['arg']}")
-        print(f"[tick {self._tick}] BUS -> TOS")
         print(f"[tick {self._tick}] TOS -> STACK")
         self.data_path.stack_push(instr['arg'])
 
@@ -376,7 +380,7 @@ class ControlUnit:
 
     def save_comeback_adr(self, instr):
         print(f"[tick {self._tick}] COMEBACK ADR")
-        self.data_path.push_b()
+        self.data_path.push_return_stack()
         self.mpc += 1
 
     # JUMP - перейти на адрес, заданный в аргументе инструкции
@@ -411,7 +415,7 @@ class ControlUnit:
 
     def micro_ret(self, insr):
         print(f"[tick {self._tick}] RET")
-        self.data_path.pop_b()
+        self.data_path.pop_return_stack()
         self.data_path.tos_to_pc()
 
     def __str__(self):
@@ -422,7 +426,8 @@ class ControlUnit:
                 f"Output: {self.data_path.output_buffer}, "
                 f"tos: {self.data_path.tos}, "
                 f"a: {self.data_path.a}, "
-                f"b: {self.data_path.b}")
+                f"b: {self.data_path.return_stack}, "
+                f"dump: {self.data_path.data_memory[self.data_path.program_memory_size:self.data_path.program_memory_size + 25]}, ")
 
     def __repr__(self):
         state_repr = "TICK: {:3} PC: {:3} ADDR: {:3} MEM[ADDR]: {:3} STACK: [{}, {}] A: {}".format(
@@ -540,7 +545,7 @@ def main(code_file, input_file):
         input_text = file.read()
         input_tokens = list(input_text)
 
-    output, ticks = simulation(code, input_tokens, data_memory_size=100, limit=2000)
+    output, ticks = simulation(code, input_tokens, data_memory_size=200, limit=2000)
     print(output)
     print("ticks:", ticks)
 

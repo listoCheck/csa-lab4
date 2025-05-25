@@ -1,0 +1,155 @@
+[
+    {
+        "index": 0,
+        "opcode": "lit",
+        "arg": 10,
+        "term": [
+            2,
+            1,
+            "lit"
+        ]
+    },
+    {
+        "index": 1,
+        "opcode": "lit",
+        "arg": 20,
+        "term": [
+            3,
+            1,
+            "lit"
+        ]
+    },
+    {
+        "index": 2,
+        "opcode": "+",
+        "term": [
+            4,
+            1,
+            "+"
+        ]
+    },
+    {
+        "index": 3,
+        "opcode": "if",
+        "arg": 9,
+        "term": [
+            5,
+            1,
+            "if"
+        ]
+    },
+    {
+        "index": 4,
+        "opcode": "lit",
+        "arg": 30,
+        "term": [
+            6,
+            1,
+            "lit"
+        ]
+    },
+    {
+        "index": 5,
+        "opcode": "-",
+        "term": [
+            7,
+            1,
+            "-"
+        ]
+    },
+    {
+        "index": 6,
+        "opcode": "if",
+        "arg": 12,
+        "term": [
+            8,
+            1,
+            "if"
+        ]
+    },
+    {
+        "index": 7,
+        "opcode": "lit",
+        "arg": 40,
+        "term": [
+            9,
+            1,
+            "lit"
+        ]
+    },
+    {
+        "index": 8,
+        "opcode": "halt",
+        "term": [
+            10,
+            1,
+            "halt"
+        ]
+    },
+    {
+        "index": 9,
+        "opcode": "lit",
+        "arg": 10,
+        "term": [
+            12,
+            1,
+            "lit"
+        ]
+    },
+    {
+        "index": 10,
+        "opcode": "+",
+        "term": [
+            13,
+            1,
+            "+"
+        ]
+    },
+    {
+        "index": 11,
+        "opcode": "halt",
+        "term": [
+            14,
+            1,
+            "halt"
+        ]
+    },
+    {
+        "index": 12,
+        "opcode": "swap",
+        "term": [
+            16,
+            1,
+            "swap"
+        ]
+    },
+    {
+        "index": 13,
+        "opcode": "lit",
+        "arg": 10,
+        "term": [
+            17,
+            1,
+            "lit"
+        ]
+    },
+    {
+        "index": 14,
+        "opcode": "if",
+        "arg": 0,
+        "term": [
+            18,
+            1,
+            "if"
+        ]
+    },
+    {
+        "index": 15,
+        "opcode": "halt",
+        "term": [
+            19,
+            1,
+            "halt"
+        ]
+    }
+]
