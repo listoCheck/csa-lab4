@@ -12,8 +12,7 @@
   - `stream`: stream based I/O
   - `port`: port-mapped I/O
   - `pstr`: Length-prefixed (Pascal string)
-  - `prob1`: Find the largest palindrome made from the product of two 
--digit numbers.
+  - `prob1`: Find the largest palindrome made from the product of two 3-digit numbers.
 
 **DROP** – Удаляет верхний элемент стека. <br>
 **DUP** – Дублирует верхний элемент стека. <br>
