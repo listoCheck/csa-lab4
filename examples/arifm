@@ -1,0 +1,18 @@
+_start:
+    lit 2147483647
+    lit 1
+    +
+    c
+    dup
+    lit 48
+    +
+    emit
+save:
+    swap
+    lit 0
+    swap
+    !
+    lit 1
+    swap
+    !
+    halt

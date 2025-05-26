@@ -16,14 +16,13 @@ class Datapath:
     program_memory_size = None
     return_stack = None
 
-
     def __init__(self, data_memory_size, input_buffer, program):
         self.program = program
         self.program_counter = 0
         assert data_memory_size > 0, "Data_memory size should be non-zero"
         self.program_memory_size = len(program)
         self.data_memory_size = data_memory_size
-        self.data_memory = program + [0] * data_memory_size
+        self.data_memory = program + [0 for i in range(data_memory_size)]
         self.stack = [0, 0]
         self.stack_first = 0
         self.stack_second = 0
@@ -31,7 +30,10 @@ class Datapath:
         self.output_buffer = []
         self.a = 0
         self.tos = 0
+        self.carry = 0
         self.return_stack = []
+        self.INT32_MIN = -2 ** 31
+        self.INT32_MAX = 2 ** 31 - 1
 
     def put_in_output_buffer(self, char):
         self.output_buffer.append(char)
@@ -62,7 +64,6 @@ class Datapath:
         else:
             return False
 
-
     def write_tos(self):
         self.tos = self.stack[-1]
         self.stack = self.stack[:-1]
@@ -83,17 +84,21 @@ class Datapath:
         if operand == "+":
             value = self.stack_first + self.tos
             self.stack = self.stack[:-1]
+            value = self.check_carry(value)
         if operand == "-":
             value = self.tos - self.stack_first
             self.stack = self.stack[:-1]
+            value = self.check_carry(value)
         if operand == "*":
             value = self.tos * self.stack_first
             self.stack = self.stack[:-1]
+            value = self.check_carry(value)
         if operand == "/":
             if self.tos == 0:
                 raise Exception("Division by zero")
             value = self.tos / self.stack_first
             self.stack = self.stack[:-1]
+            value = self.check_carry(value)
         if operand == "~":
             value = ~self.tos
         if operand == "%":
@@ -110,6 +115,7 @@ class Datapath:
             self.stack = self.stack[:-1]
         if operand == "--":
             value = -self.tos
+            value = self.check_carry(value)
         if operand == "==":
             value = int(self.tos == self.stack_first)
             self.stack = self.stack[:-1]
@@ -122,18 +128,21 @@ class Datapath:
             self.stack = self.stack[:-1]
         self.tos = value
 
+    def check_carry(self, value):
+        # у си есть что-то подобное (позаимствовал идею оттуда), надо, чтобы привести к 32-битному знаковому числу
+        if value < self.INT32_MIN or value > self.INT32_MAX:
+            self.carry = 1
+            value -= 2 ** 31
+        else:
+            self.carry = 0
+        return value
+
     def stack_push(self, value):
         self.stack.append(value)
 
     def stack_pop(self):
-        self.stack_first = 0
+        self.stack = self.stack[:-1]
 
-    def save_to_reg_a(self):
-        self.a = self.stack_first
-
-    def move(self):
-        self.stack_first = self.stack_second
-        self.stack_second = 0
 
     def push_return_stack(self):
         self.return_stack.append(self.program_counter)
@@ -215,7 +224,7 @@ class ControlUnit:
         self.data_path.tos = self.data_path.stack[-1]
         self.data_path.a = self.data_path.stack[-1]
         self.data_path.stack = self.data_path.stack[:-1]
-        self.mpc -=  26
+        self.mpc -= 26
         self.rep_swap_dup = True
 
     # SWAP: меняет местами верхние два элемента стека
@@ -331,7 +340,6 @@ class ControlUnit:
         else:
             print(f"[tick {self._tick}] IF - переход не требуется (не ноль)")
 
-
     # STORE - записать в память по адресу в stack_second значение из stack_first
     def micro_store_1(self, instr):
         print(f"[tick {self._tick}] STORE")
@@ -412,11 +420,14 @@ class ControlUnit:
             self.mpc += 1
             self.rep_swap_dup = False
 
-
     def micro_ret(self, insr):
         print(f"[tick {self._tick}] RET")
         self.data_path.pop_return_stack()
         self.data_path.tos_to_pc()
+
+    def micro_carry(self, instr):
+        print(f"[tick {self._tick}] CARRY")
+        self.data_path.stack_push(self.data_path.carry)
 
     def __str__(self):
         return (f"Tick: {self._tick}, "
@@ -472,7 +483,7 @@ def simulation(code, input_tokens, data_memory_size, limit):
     return "".join(data_path.output_buffer), control_unit.get_tick()
 
 
-# Программа микрокода - список списков сигналов
+# Массив микрокода
 mp = [
     ControlUnit.micro_swap,
     ControlUnit.micro_stack_to_a,
@@ -504,6 +515,7 @@ mp = [
     ControlUnit.micro_drop,
     ControlUnit.micro_dup,
     ControlUnit.micro_emit_1,
+    ControlUnit.micro_carry,
     ControlUnit.micro_halt
 ]
 
@@ -533,7 +545,8 @@ mapping = {
     Opcode.DROP: 27,
     Opcode.DUP: 28,
     Opcode.EMIT: 29,
-    Opcode.HALT: 30
+    Opcode.CARRY: 30,
+    Opcode.HALT: 31
 }
 
 

@@ -6,7 +6,7 @@ from isa import Opcode, Term, to_bytes, to_hex, write_json
 def symbols():
     return {
         "drop", "dup", "swap", "+", "-", "*", "/", "mod", "negate", "=", "<", ">", "and", "or", "xor", "invert",
-        "if", "!", "@", "key", "halt", "lit", "emit", "jump", "call", "ret"
+        "if", "!", "@", "key", "halt", "lit", "emit", "jump", "call", "ret", "c"
     }
 
 
@@ -38,6 +38,7 @@ def symbol2opcode(symbol):
         "jump": Opcode.JUMP,
         "call": Opcode.CALL,
         "ret": Opcode.RET,
+        "c": Opcode.CARRY,
     }.get(symbol)
 
 
