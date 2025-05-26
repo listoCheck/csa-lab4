@@ -16,24 +16,29 @@ class Datapath:
     program_memory_size = None
     return_stack = None
 
+
     def __init__(self, data_memory_size, input_buffer, program):
         self.program = program
         self.program_counter = 0
         assert data_memory_size > 0, "Data_memory size should be non-zero"
         self.program_memory_size = len(program)
         self.data_memory_size = data_memory_size
+        self.input_buffer = input_buffer
+        self.output_buffer = []
         self.data_memory = program + [0 for i in range(data_memory_size)]
         self.stack = [0, 0]
         self.stack_first = 0
         self.stack_second = 0
-        self.input_buffer = input_buffer
-        self.output_buffer = []
         self.a = 0
         self.tos = 0
         self.carry = 0
         self.return_stack = []
         self.INT32_MIN = -2 ** 31
         self.INT32_MAX = 2 ** 31 - 1
+        self.ports = {
+            0: self.get_key_from_input,  # порт 0: ввод
+            1: self.send_char_to_output  # порт 1: вывод
+        }
 
     def put_in_output_buffer(self, char):
         self.output_buffer.append(char)
@@ -129,7 +134,7 @@ class Datapath:
         self.tos = value
 
     def check_carry(self, value):
-        # у си есть что-то подобное (позаимствовал идею оттуда), надо, чтобы привести к 32-битному знаковому числу
+        # надо, чтобы привести к 32-битному знаковому числу
         if value < self.INT32_MIN or value > self.INT32_MAX:
             self.carry = 1
             value -= 2 ** 31
@@ -143,7 +148,6 @@ class Datapath:
     def stack_pop(self):
         self.stack = self.stack[:-1]
 
-
     def push_return_stack(self):
         self.return_stack.append(self.program_counter)
 
@@ -153,6 +157,21 @@ class Datapath:
 
     def tos_to_pc(self):
         self.program_counter = self.tos
+
+    def get_key_from_input(self):
+        if self.input_buffer:
+            ch = self.input_buffer.pop(0)
+            self.tos = ord(ch)
+            print(f"Read char '{ch}' (code {ord(ch)})")
+        else:
+            self.tos = 0
+            print("Input buffer empty")
+
+    def send_char_to_output(self):
+        value = chr(self.stack[-1])
+        self.put_in_output_buffer(value)
+        print(f"Output char '{value}'")
+        self.stack = self.stack[:-1]
 
 
 # надо сделать схему с вентилями и дальше в логгинге выполнения каждый команды написать какие вентили под нее я открываю
@@ -236,35 +255,35 @@ class ControlUnit:
         self.rep_swap_dup = True
 
     # ADD
-    def micro_add_1(self, instr):
+    def micro_add(self, instr):
         print(f"[tick {self._tick}] ADD")
         self.micro_tos(instr)
         self.data_path.alu("+")
         self.mpc -= 2
 
     # SUB
-    def micro_sub_1(self, instr):
+    def micro_sub(self, instr):
         print(f"[tick {self._tick}] SUB")
         self.micro_tos(instr)
         self.data_path.alu("-")
         self.mpc -= 3
 
     # MUL
-    def micro_mul_1(self, instr):
+    def micro_mul(self, instr):
         print(f"[tick {self._tick}] MUL")
         self.micro_tos(instr)
         self.data_path.alu("*")
         self.mpc -= 4
 
     # DIV
-    def micro_div_1(self, instr):
+    def micro_div(self, instr):
         print(f"[tick {self._tick}] DIV")
         self.micro_tos(instr)
         self.data_path.alu("/")
         self.mpc -= 5
 
     # MOD
-    def micro_mod_1(self, instr):
+    def micro_mod(self, instr):
         print(f"[tick {self._tick}] MOD")
         self.micro_tos(instr)
         self.data_path.alu("%")
@@ -341,27 +360,27 @@ class ControlUnit:
             print(f"[tick {self._tick}] IF - переход не требуется (не ноль)")
 
     # STORE - записать в память по адресу в stack_second значение из stack_first
-    def micro_store_1(self, instr):
+    def micro_store(self, instr):
         print(f"[tick {self._tick}] STORE")
         self.data_path.write_in_memory()
 
     # FETCH - загрузить в стек значение из памяти по адресу stack_first
-    def micro_fetch_1(self, instr):
+    def micro_fetch(self, instr):
         print(f"[tick {self._tick}] FETCH")
         self.data_path.tos = self.data_path.read_from_memory()
         self.mpc -= 17
 
     # KEY - получить символ из входного буфера
-    def micro_key_1(self, instr):
+    def micro_key(self, instr):
         print(f"[tick {self._tick}] KEY")
-        if self.data_path.input_buffer:
-            ch = self.data_path.input_buffer.pop(0)
-            self.data_path.tos = ord(ch)
-            print(f"Read char '{ch}' (code {ord(ch)})")
+        port = instr['arg']
+        if port in self.data_path.ports and port == 0:
+            self.data_path.ports[port]()
         else:
-            self.data_path.tos = 0
-            print("Input buffer empty")
+            raise ValueError(f"Неизвестный порт для чтения: {port}")
         self.mpc -= 18
+
+
 
     # HALT
     def micro_halt(self, instr):
@@ -379,12 +398,13 @@ class ControlUnit:
         self.data_path.stack_push(instr['arg'])
 
     # EMIT - выводить символ из stack_first
-    def micro_emit_1(self, instr):
+    def micro_emit(self, instr):
         print(f"[tick {self._tick}] EMIT")
-        value = chr(self.data_path.stack[-1])
-        self.data_path.put_in_output_buffer(value)
-        print(f"Output char '{value}'")
-        self.data_path.stack = self.data_path.stack[:-1]
+        port = instr['arg']
+        if port in self.data_path.ports and port == 1:
+            self.data_path.ports[port]()
+        else:
+            raise ValueError(f"Неизвестный порт для записи: {port}")
 
     def save_comeback_adr(self, instr):
         print(f"[tick {self._tick}] COMEBACK ADR")
@@ -392,7 +412,7 @@ class ControlUnit:
         self.mpc += 1
 
     # JUMP - перейти на адрес, заданный в аргументе инструкции
-    def micro_jump_1(self, instr):
+    def micro_jump(self, instr):
         print(f"[tick {self._tick}] JUMP")
         target = instr.get("arg", 0)
         print(f"Jump to {target}")
@@ -489,11 +509,11 @@ mp = [
     ControlUnit.micro_stack_to_a,
     ControlUnit.micro_tos_to_stack,
     ControlUnit.micro_a_to_tos,
-    ControlUnit.micro_add_1,
-    ControlUnit.micro_sub_1,
-    ControlUnit.micro_mul_1,
-    ControlUnit.micro_div_1,
-    ControlUnit.micro_mod_1,
+    ControlUnit.micro_add,
+    ControlUnit.micro_sub,
+    ControlUnit.micro_mul,
+    ControlUnit.micro_div,
+    ControlUnit.micro_mod,
     ControlUnit.micro_negate,
     ControlUnit.micro_equal,
     ControlUnit.micro_less,
@@ -504,17 +524,17 @@ mp = [
     ControlUnit.micro_invert,
     ControlUnit.micro_if_1,
     ControlUnit.micro_if_2,
-    ControlUnit.micro_fetch_1,
-    ControlUnit.micro_key_1,
-    ControlUnit.micro_store_1,
+    ControlUnit.micro_fetch,
+    ControlUnit.micro_key,
+    ControlUnit.micro_store,
     ControlUnit.micro_lit_1,
     ControlUnit.micro_lit_2,
     ControlUnit.save_comeback_adr,
-    ControlUnit.micro_jump_1,
+    ControlUnit.micro_jump,
     ControlUnit.micro_ret,
     ControlUnit.micro_drop,
     ControlUnit.micro_dup,
-    ControlUnit.micro_emit_1,
+    ControlUnit.micro_emit,
     ControlUnit.micro_carry,
     ControlUnit.micro_halt
 ]

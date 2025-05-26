@@ -1,38 +1,38 @@
 _start:
     lit 72
-    emit
+    emit 1
 
     lit 101
-    emit
+    emit 1
 
     lit 108
-    emit
+    emit 1
 
     lit 108
-    emit
+    emit 1
 
     lit 111
-    emit
+    emit 1
 
     lit 32
-    emit
+    emit 1
 
     lit 87
-    emit
+    emit 1
 
     lit 111
-    emit
+    emit 1
 
     lit 114
-    emit
+    emit 1
 
     lit 108
-    emit
+    emit 1
 
     lit 100
-    emit
+    emit 1
 
     lit 33
-    emit
+    emit 1
 
     halt

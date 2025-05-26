@@ -120,7 +120,7 @@ def to_bytes(code):
         opcode_val = opcode_to_binary[instr["opcode"]] & 0xFF
         binary_bytes.append(opcode_val)
 
-        if instr["opcode"] in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL):
+        if instr["opcode"] in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL, Opcode.KEY, Opcode.EMIT):
             arg = instr.get("arg", 0)
 
             if not (0 <= arg <= 0xFFFFFFFF):
@@ -151,7 +151,7 @@ def to_hex(code):
         i += 1
 
         arg_str = ""
-        if instr["opcode"] in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL):
+        if instr["opcode"] in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL, Opcode.KEY, Opcode.EMIT):
             arg = instr.get("arg", 0)
             arg_bytes = []
             temp = arg
@@ -196,7 +196,7 @@ def from_bytes(binary_code):
 
         instr = {"index": index, "opcode": opcode}
 
-        if opcode in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL):
+        if opcode in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL, Opcode.KEY, Opcode.EMIT):
             arg_bytes = word_bytes[1:]
             if not arg_bytes:
                 raise ValueError(f"Инструкция {opcode} требует аргумент, но он отсутствует в строке: {line}")

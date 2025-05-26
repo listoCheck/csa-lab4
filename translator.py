@@ -100,7 +100,7 @@ def translate(text):
         counter = 0
         if terms[i].symbol.endswith(":"):
             for j in range(i):
-                if terms[j].symbol in ("if", "lit", "jump", "call"):
+                if terms[j].symbol in ("if", "lit", "jump", "call", "key", "emit"):
                     counter += 1
             new_labels[terms[i].symbol[:-1]] = labels[terms[i].symbol[:-1]] - counter
 
@@ -112,32 +112,38 @@ def translate(text):
     ic = 0
 
     while i < len(filtered):
-
         term = filtered[i]
         sym = term.symbol
 
-        if sym == "if":
-            assert i + 1 < len(filtered), f"После 'if' на строке {term.line} нет метки"
-            label = filtered[i + 1].symbol
+        def expect_next_token():
+            assert i + 1 < len(filtered), f"После '{sym}' на строке {term.line} нет аргумента"
+            return filtered[i + 1]
+
+        def resolve_label(label_term):
+            label = label_term.symbol
             assert label in labels, f"Метка не определена: {label}"
+            return new_labels[label]
+
+        if sym in {"if", "jump", "call"}:
+            arg_term = expect_next_token()
+            target = resolve_label(arg_term)
+            opcode = Opcode[sym.upper()]
             code.append({
                 "index": pc,
-                "opcode": Opcode.IF,
-                "arg": new_labels[label],
+                "opcode": opcode,
+                "arg": target,
                 "term": term
             })
             i += 2
-            ic += 1
+            ic += 1 if sym == "if" else ic
+
         elif sym == "lit":
-            assert i + 1 < len(filtered), f"После 'lit' на строке {term.line} нет значения"
-            value_term = filtered[i + 1]
+            value_term = expect_next_token()
             try:
-                if "0x" in value_term.symbol:
-                    value = int(value_term.symbol, 16)
-                else:
-                    value = int(value_term.symbol)
+                value = int(value_term.symbol, 16) if "0x" in value_term.symbol else int(value_term.symbol)
             except ValueError:
-                raise AssertionError(f"Некорректное значение после 'lit': {value_term.symbol} на строке {value_term.line}")
+                raise AssertionError(
+                    f"Некорректное значение после 'lit': {value_term.symbol} на строке {value_term.line}")
             code.append({
                 "index": pc,
                 "opcode": Opcode.LIT,
@@ -145,35 +151,34 @@ def translate(text):
                 "term": term
             })
             i += 2
-        elif sym == "jump":
-            assert i + 1 < len(filtered), f"После 'jump' на строке {term.line} нет метки"
-            label = filtered[i + 1].symbol
-            assert label in labels, f"Метка не определена: {label}"
+
+        elif sym in {"key", "emit"}:
+            port_term = expect_next_token()
+            try:
+                port = int(port_term.symbol)
+            except ValueError:
+                raise AssertionError(
+                    f"Некорректный номер порта после '{sym}': {port_term.symbol} на строке {port_term.line}")
+            opcode = Opcode[sym.upper()]
             code.append({
                 "index": pc,
-                "opcode": Opcode.JUMP,
-                "arg": new_labels[label],
+                "opcode": opcode,
+                "arg": port,
                 "term": term
             })
             i += 2
-        elif sym == "call":
-            assert i + 1 < len(filtered), f"После 'call' на строке {term.line} нет метки"
-            label = filtered[i + 1].symbol
-            assert label in labels, f"Метка не определена: {label}"
-            code.append({
-                "index": pc,
-                "opcode": Opcode.CALL,
-                "arg": new_labels[label],
-                "term": term
-            })
-            i += 2
+
         else:
             if sym in labels:
                 i += 1
                 continue
             opcode = symbol2opcode(sym)
             assert opcode is not None, f"Неизвестная операция: {sym}"
-            code.append({"index": pc, "opcode": opcode, "term": term})
+            code.append({
+                "index": pc,
+                "opcode": opcode,
+                "term": term
+            })
             i += 1
 
         pc += 1

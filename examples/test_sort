@@ -3,55 +3,55 @@ _start:
     lit 48  ; чтобы сделать нормальное количество букв (паскаль строкой)
     call rep
     dup
-    lit 1
+    lit 3
     swap
     !
     !
-    lit 2
+    lit 4
     lit 0
     !
 while:
     key 0
-    lit 0
+    lit 2
     @
-    lit 1
+    lit 3
     @       ; это нужно чтобы найти число, которое прибавить к адресу
     -
-    lit 5   ; адрес массива
+    lit 7   ; адрес массива
     +
     swap
     !
-    lit 0
+    lit 2
     @
     lit 1
     call rep
     dup
     if next
     !
-    lit 2
+    lit 4
     dup
     @
-    lit 1
+    lit 3
     +
     jump while
 rep:
     swap
     -
-    lit 0
+    lit 2
     swap
     ret
 next:
-    lit 1
+    lit 3
     @
-    lit 0
+    lit 2
     swap
     !
 repeat:
-    lit 3
+    lit 5
     @
     lit 1
     +
-    lit 0
+    lit 2
     @
     -
     if check
@@ -60,15 +60,15 @@ repeat:
     >
     dup
     if swap_nums
-    lit 4
+    lit 6
     @
     +
-    lit 4
+    lit 6
     swap
     !
     jump continue
 continue:
-    lit 3
+    lit 5
     dup
     @
     lit 1
@@ -88,8 +88,8 @@ swap_nums:
     !
     jump continue
 get_addr:
-    lit 5   ; адрес массива
-    lit 3
+    lit 7   ; адрес массива
+    lit 5
     @
     +
     ret
@@ -103,18 +103,18 @@ get_nums:
     @
     ret
 check:
-    lit 4
+    lit 6
     @
     lit 1
     +
-    lit 0
+    lit 2
     @
     -
     if end
-    lit 4
+    lit 6
     lit 0
     !
-    lit 3
+    lit 5
     lit 0
     !
     jump repeat
