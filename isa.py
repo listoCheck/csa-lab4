@@ -143,6 +143,7 @@ def to_hex(code):
     result = []
     i = 0
     addr = 0
+    iter = 0
 
     for instr in code:
         opcode_val = opcode_to_binary[instr["opcode"]] & 0xFF
@@ -166,8 +167,9 @@ def to_hex(code):
 
         hex_word = ''.join(hex_parts)
         mnemonic = instr["opcode"].value
-        result.append(f"{addr} - {hex_word} - {mnemonic}{arg_str}")
+        result.append(f"{iter} - {hex_word} - {mnemonic}{arg_str}")
         addr = i
+        iter += 1
 
     return "\n".join(result)
 
