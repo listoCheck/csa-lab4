@@ -38,7 +38,7 @@ class Opcode(str, Enum):
     JUMP = "jump"  # Переход на метку
     CALL = "call"  # Переход на процедуру
     RET = "ret"  # Возвращение из процедуры
-    CARRY = "c" # Загрузить значение Overflow-flag в стек
+    CARRY = "c"  # Загрузить значение Overflow-flag в стек
 
     def __str__(self):
         return str(self.value)
@@ -126,49 +126,46 @@ def to_bytes(code):
             if not (0 <= arg <= 0xFFFFFFFF):
                 raise ValueError(f"Аргумент {arg} превышает допустимые 32 бита")
 
-            # Вычисляем минимальное количество байт для представления числа
             arg_bytes = []
             temp = arg
             while temp > 0:
                 arg_bytes.insert(0, temp & 0xFF)
                 temp >>= 8
 
-            # Гарантируем не более 4 байт
             if len(arg_bytes) > 4:
                 raise ValueError(f"Аргумент {arg} требует более 4 байт")
 
-            # Записываем длину и сами байты
-            binary_bytes.append(len(arg_bytes))
             binary_bytes.extend(arg_bytes)
     return bytes(binary_bytes)
 
 
-
-
 def to_hex(code):
-    binary_code = to_bytes(code)
     result = []
     i = 0
     addr = 0
 
-    while i < len(binary_code):
-        opcode_val = binary_code[i]
-        opcode = binary_to_opcode.get(opcode_val, f"UNKNOWN_{opcode_val:02X}")
-        mnemonic = opcode.value if isinstance(opcode, Opcode) else opcode
+    for instr in code:
+        opcode_val = opcode_to_binary[instr["opcode"]] & 0xFF
+        hex_parts = [f"{opcode_val:02X}"]
         i += 1
 
         arg_str = ""
-        if opcode in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL):
-            arg_len = binary_code[i]
-            i += 1
-            arg = 0
-            for j in range(arg_len):
-                arg = (arg << 8) | binary_code[i + j]
-            i += arg_len
+        if instr["opcode"] in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL):
+            arg = instr.get("arg", 0)
+            arg_bytes = []
+            temp = arg
+            while temp > 0:
+                arg_bytes.insert(0, temp & 0xFF)
+                temp >>= 8
+            if not arg_bytes:
+                arg_bytes = [0]
+
+            hex_parts.extend(f"{b:02X}" for b in arg_bytes)
+            i += len(arg_bytes)
             arg_str = f" {arg}"
 
-        line_bytes = binary_code[addr:i]
-        hex_word = ''.join(f"{b:02X}" for b in line_bytes)
+        hex_word = ''.join(hex_parts)
+        mnemonic = instr["opcode"].value
         result.append(f"{addr} - {hex_word} - {mnemonic}{arg_str}")
         addr = i
 
@@ -185,6 +182,10 @@ def from_bytes(binary_code):
         index_str, hex_word, mnemonic = parts
         index = int(index_str)
         word_bytes = bytes.fromhex(hex_word)
+
+        if len(word_bytes) == 0:
+            raise ValueError(f"Пустая строка байтов в строке: {line}")
+
         opcode_val = word_bytes[0]
         opcode = binary_to_opcode.get(opcode_val)
 
@@ -193,23 +194,18 @@ def from_bytes(binary_code):
 
         instr = {"index": index, "opcode": opcode}
 
-        # Инструкции с аргументом: длина аргумента в 1 байте + сами байты
         if opcode in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL):
-            if len(word_bytes) < 2:
-                raise ValueError(f"Недостаточно данных для аргумента в строке: {line}")
-
-            arg_len = word_bytes[1]
-            if len(word_bytes) != 2 + arg_len:
-                raise ValueError(f"Ожидалось {arg_len} байт для аргумента, но получили {len(word_bytes) - 2} в строке: {line}")
+            arg_bytes = word_bytes[1:]
+            if not arg_bytes:
+                raise ValueError(f"Инструкция {opcode} требует аргумент, но он отсутствует в строке: {line}")
 
             arg = 0
-            for b in word_bytes[2:]:
+            for b in arg_bytes:
                 arg = (arg << 8) | b
             instr["arg"] = arg
 
         structured_code.append(instr)
     return structured_code
-
 
 
 def write_json(filename, code):
