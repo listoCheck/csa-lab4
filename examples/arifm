@@ -1,5 +1,5 @@
 _start:
-    lit 2_147_483_647
+    lit 0x7FFFFFFF
     lit 1
     +
     c

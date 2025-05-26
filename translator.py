@@ -64,7 +64,10 @@ def text2terms(text):
                 terms.append(Term(line_num, pos, word))
             else:
                 try:
-                    int(word)
+                    if "0x" in word:
+                        int(word, 16)
+                    else:
+                        int(word)
                     terms.append(Term(line_num, pos, word))
                 except ValueError:
                     pass
@@ -129,7 +132,10 @@ def translate(text):
             assert i + 1 < len(filtered), f"После 'lit' на строке {term.line} нет значения"
             value_term = filtered[i + 1]
             try:
-                value = int(value_term.symbol)
+                if "0x" in value_term.symbol:
+                    value = int(value_term.symbol, 16)
+                else:
+                    value = int(value_term.symbol)
             except ValueError:
                 raise AssertionError(f"Некорректное значение после 'lit': {value_term.symbol} на строке {value_term.line}")
             code.append({
