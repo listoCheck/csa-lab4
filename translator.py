@@ -1,12 +1,12 @@
 import os
 import sys
-from isa import Opcode, Term, to_bytes, to_hex, write_json
+from isa import Opcode, Term, to_bytes, to_hex
 
 
 def symbols():
     return {
         "drop", "dup", "swap", "+", "-", "*", "/", "mod", "negate", "=", "<", ">", "and", "or", "xor", "invert",
-        "if", "!", "@", "key", "halt", "lit", "emit", "jump", "call", "ret", "c"
+        "if", "!", "@", "in", "halt", "lit", "out", "jump", "call", "ret", "c"
     }
 
 
@@ -31,10 +31,10 @@ def symbol2opcode(symbol):
         "if": Opcode.IF,
         "!": Opcode.STORE,
         "@": Opcode.FETCH,
-        "key": Opcode.KEY,
+        "in": Opcode.IN,
         "halt": Opcode.HALT,
         "lit": Opcode.LIT,
-        "emit": Opcode.EMIT,
+        "out": Opcode.OUT,
         "jump": Opcode.JUMP,
         "call": Opcode.CALL,
         "ret": Opcode.RET,
@@ -79,7 +79,6 @@ def translate(text):
 
     labels = {}
     pc_counter = 0
-    print(terms)
     for term in terms:
         if term.symbol.endswith(":"):
             label = term.symbol[:-1]
@@ -100,7 +99,7 @@ def translate(text):
         counter = 0
         if terms[i].symbol.endswith(":"):
             for j in range(i):
-                if terms[j].symbol in ("if", "lit", "jump", "call", "key", "emit"):
+                if terms[j].symbol in ("if", "lit", "jump", "call", "in", "out"):
                     counter += 1
             new_labels[terms[i].symbol[:-1]] = labels[terms[i].symbol[:-1]] - counter
 
@@ -115,35 +114,28 @@ def translate(text):
         term = filtered[i]
         sym = term.symbol
 
-        def expect_next_token():
-            assert i + 1 < len(filtered), f"После '{sym}' на строке {term.line} нет аргумента"
-            return filtered[i + 1]
-
-        def resolve_label(label_term):
-            label = label_term.symbol
-            assert label in labels, f"Метка не определена: {label}"
-            return new_labels[label]
 
         if sym in {"if", "jump", "call"}:
-            arg_term = expect_next_token()
-            target = resolve_label(arg_term)
+            arg_term = filtered[i + 1]
+            label = arg_term.symbol
+            arg = new_labels[label]
             opcode = Opcode[sym.upper()]
             code.append({
                 "index": pc,
                 "opcode": opcode,
-                "arg": target,
+                "arg": arg,
                 "term": term
             })
             i += 2
             ic += 1 if sym == "if" else ic
 
         elif sym == "lit":
-            value_term = expect_next_token()
+            arg_term = filtered[i + 1]
             try:
-                value = int(value_term.symbol, 16) if "0x" in value_term.symbol else int(value_term.symbol)
+                value = int(arg_term.symbol, 16) if "0x" in arg_term.symbol else int(arg_term.symbol)
             except ValueError:
                 raise AssertionError(
-                    f"Некорректное значение после 'lit': {value_term.symbol} на строке {value_term.line}")
+                    f"Некорректное значение после 'lit': {arg_term.symbol} на строке {arg_term.line}")
             code.append({
                 "index": pc,
                 "opcode": Opcode.LIT,
@@ -152,13 +144,13 @@ def translate(text):
             })
             i += 2
 
-        elif sym in {"key", "emit"}:
-            port_term = expect_next_token()
+        elif sym in {"in", "out"}:
+            arg_term = filtered[i + 1]
             try:
-                port = int(port_term.symbol)
+                port = int(arg_term.symbol)
             except ValueError:
                 raise AssertionError(
-                    f"Некорректный номер порта после '{sym}': {port_term.symbol} на строке {port_term.line}")
+                    f"Некорректный номер порта после '{sym}': {arg_term.symbol} на строке {arg_term.line}")
             opcode = Opcode[sym.upper()]
             code.append({
                 "index": pc,
@@ -202,7 +194,7 @@ def main(source2, target2):
     binary_code = to_bytes(code)
     hex_code = to_hex(code)
 
-    print("\nБайткод")
+    print("\nМашинный код")
     print(hex_code)
     os.makedirs(os.path.dirname(os.path.abspath(target2)) or ".", exist_ok=True)
 
@@ -211,9 +203,6 @@ def main(source2, target2):
             f.write(binary_code)
         with open(target2 + ".hex", "w") as f:
             f.write(hex_code)
-    else:
-        write_json(target2, code)
-
     print("\nsource LoC:", len(source2.split("\n")), "code instr:", len(code))
 
 

@@ -1,38 +1,38 @@
 _start:
     lit 72
-    emit 1
+    out 2
 
     lit 101
-    emit 1
+    out 2
 
     lit 108
-    emit 1
+    out 2
 
     lit 108
-    emit 1
+    out 2
 
     lit 111
-    emit 1
+    out 2
 
     lit 32
-    emit 1
+    out 2
 
     lit 87
-    emit 1
+    out 2
 
     lit 111
-    emit 1
+    out 2
 
     lit 114
-    emit 1
+    out 2
 
     lit 108
-    emit 1
+    out 2
 
     lit 100
-    emit 1
+    out 2
 
     lit 33
-    emit 1
+    out 2
 
     halt

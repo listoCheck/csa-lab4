@@ -1,5 +1,5 @@
 _start:
-    key 0
+    in 0
     dup
     if name
     lit 48
@@ -7,8 +7,8 @@ _start:
     !
     call hello
 while:
-    key 0
-    emit 1
+    in 0
+    out 2
     lit 5
     @
     lit 1
@@ -25,59 +25,59 @@ rep:
     ret
 end:
     lit 33
-    emit 1
+    out 2
     halt
 hello:
     lit 72
-    emit 1
+    out 2
     lit 101
-    emit 1
+    out 2
     lit 108
-    emit 1
+    out 2
     lit 108
-    emit 1
+    out 2
     lit 111
-    emit 1
+    out 2
     lit 44
-    emit 1
+    out 2
     lit 32
-    emit 1
+    out 2
     ret
 name:
     lit 87
-    emit 1
+    out 2
     lit 104
-    emit 1
+    out 2
     lit 97
-    emit 1
+    out 2
     lit 116
-    emit 1
+    out 2
     lit 32
-    emit 1
+    out 2
     lit 105
-    emit 1
+    out 2
     lit 115
-    emit 1
+    out 2
     lit 32
-    emit 1
+    out 2
     lit 121
-    emit 1
+    out 2
     lit 111
-    emit 1
+    out 2
     lit 117
-    emit 1
+    out 2
     lit 114
-    emit 1
+    out 2
     lit 32
-    emit 1
+    out 2
     lit 110
-    emit 1
+    out 2
     lit 97
-    emit 1
+    out 2
     lit 109
-    emit 1
+    out 2
     lit 101
-    emit 1
+    out 2
     lit 63
-    emit 1
+    out 2
     halt

@@ -1,11 +1,11 @@
 _start:
-    key 0
+    in 0
     lit 48
     call rep
     !
 while:
-    key 0
-    emit 1
+    in 0
+    out 2
     lit 5
     @
     lit 1

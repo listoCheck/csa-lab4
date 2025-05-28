@@ -1,5 +1,5 @@
 _start:
-    key 0
+    in 0
     lit 48  ; чтобы сделать нормальное количество букв (паскаль строкой)
     call rep
     dup
@@ -11,7 +11,7 @@ _start:
     lit 0
     !
 while:
-    key 0
+    in 0
     lit 0
     @
     lit 1

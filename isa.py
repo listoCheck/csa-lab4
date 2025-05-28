@@ -2,7 +2,6 @@
 
 Определено два представления:
 - Бинарное
-- JSON
 """
 
 import json
@@ -31,10 +30,10 @@ class Opcode(str, Enum):
     EXIT = "exit"  # Завершение выполнения слова
     STORE = "!"  # addr value !
     FETCH = "@"  # addr @
-    KEY = "key"  # Считывание символа с клавиатуры
+    IN = "in"  # Считывание символа с клавиатуры
     HALT = "halt"  # Останов
     LIT = "lit"  # Ввод числа
-    EMIT = "emit"  # Вывод символа с вершины стека
+    OUT = "out"  # Вывод символа с вершины стека
     JUMP = "jump"  # Переход на метку
     CALL = "call"  # Переход на процедуру
     RET = "ret"  # Возвращение из процедуры
@@ -72,10 +71,10 @@ opcode_to_binary = {
     Opcode.IF: 0x10,
     Opcode.STORE: 0x11,
     Opcode.FETCH: 0x12,
-    Opcode.KEY: 0x13,
+    Opcode.IN: 0x13,
     Opcode.HALT: 0x14,
     Opcode.LIT: 0x15,
-    Opcode.EMIT: 0x16,
+    Opcode.OUT: 0x16,
     Opcode.JUMP: 0x17,
     Opcode.CALL: 0x18,
     Opcode.RET: 0x19,
@@ -103,10 +102,10 @@ binary_to_opcode = {
     0x10: Opcode.IF,
     0x11: Opcode.STORE,
     0x12: Opcode.FETCH,
-    0x13: Opcode.KEY,
+    0x13: Opcode.IN,
     0x14: Opcode.HALT,
     0x15: Opcode.LIT,
-    0x16: Opcode.EMIT,
+    0x16: Opcode.OUT,
     0x17: Opcode.JUMP,
     0x18: Opcode.CALL,
     0x19: Opcode.RET,
@@ -120,7 +119,7 @@ def to_bytes(code):
         opcode_val = opcode_to_binary[instr["opcode"]] & 0xFF
         binary_bytes.append(opcode_val)
 
-        if instr["opcode"] in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL, Opcode.KEY, Opcode.EMIT):
+        if instr["opcode"] in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL, Opcode.IN, Opcode.OUT):
             arg = instr.get("arg", 0)
 
             if not (0 <= arg <= 0xFFFFFFFF):
@@ -136,14 +135,14 @@ def to_bytes(code):
                 raise ValueError(f"Аргумент {arg} требует более 4 байт")
 
             binary_bytes.extend(arg_bytes)
+    print(binary_bytes)
     return bytes(binary_bytes)
 
 
 def to_hex(code):
     result = []
     i = 0
-    addr = 0
-    iter = 0
+    iteration = 0
 
     for instr in code:
         opcode_val = opcode_to_binary[instr["opcode"]] & 0xFF
@@ -151,7 +150,7 @@ def to_hex(code):
         i += 1
 
         arg_str = ""
-        if instr["opcode"] in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL, Opcode.KEY, Opcode.EMIT):
+        if instr["opcode"] in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL, Opcode.IN, Opcode.OUT):
             arg = instr.get("arg", 0)
             arg_bytes = []
             temp = arg
@@ -167,9 +166,8 @@ def to_hex(code):
 
         hex_word = ''.join(hex_parts)
         mnemonic = instr["opcode"].value
-        result.append(f"{iter} - {hex_word} - {mnemonic}{arg_str}")
-        addr = i
-        iter += 1
+        result.append(f"{iteration} - {hex_word} - {mnemonic}{arg_str}")
+        iteration += 1
 
     return "\n".join(result)
 
@@ -196,7 +194,7 @@ def from_bytes(binary_code):
 
         instr = {"index": index, "opcode": opcode}
 
-        if opcode in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL, Opcode.KEY, Opcode.EMIT):
+        if opcode in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL, Opcode.IN, Opcode.OUT):
             arg_bytes = word_bytes[1:]
             if not arg_bytes:
                 raise ValueError(f"Инструкция {opcode} требует аргумент, но он отсутствует в строке: {line}")
@@ -209,7 +207,3 @@ def from_bytes(binary_code):
         structured_code.append(instr)
     return structured_code
 
-
-def write_json(filename, code):
-    with open(filename, "w", encoding="utf-8") as file:
-        json.dump(code, file, indent=4)

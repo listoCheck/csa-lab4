@@ -7,8 +7,8 @@ from isa import Opcode, from_bytes, opcode_to_binary
 class Datapath:
     stack_first = None  # Верхняя ячейка стека
     stack_second = None  # Нижняя ячейка стека
-    input_buffer = None  # Буфер входных данных. Инициализируется входными данными конструктора.
-    output_buffer = None  # Буфер выходных данных.
+    input_buffer0 = None  # Буфер входных данных. Инициализируется входными данными конструктора.
+    output_buffer0 = None  # Буфер выходных данных.
     data_memory_size = None  # Размер памяти данных.
     data_memory = None  # Память данных. Инициализируется нулевыми значениями.
     a = None
@@ -16,15 +16,16 @@ class Datapath:
     program_memory_size = None
     return_stack = None
 
-
-    def __init__(self, data_memory_size, input_buffer, program):
+    def __init__(self, data_memory_size, input_buffer0, program):
         self.program = program
         self.program_counter = 0
         assert data_memory_size > 0, "Data_memory size should be non-zero"
         self.program_memory_size = len(program)
         self.data_memory_size = data_memory_size
-        self.input_buffer = input_buffer
-        self.output_buffer = []
+        self.input_buffer0 = input_buffer0
+        self.input_buffer1 = []
+        self.output_buffer0 = []
+        self.output_buffer1 = []
         self.data_memory = program + [0 for i in range(data_memory_size)]
         self.stack = [0, 0]
         self.stack_first = 0
@@ -35,13 +36,12 @@ class Datapath:
         self.return_stack = []
         self.INT32_MIN = -2 ** 31
         self.INT32_MAX = 2 ** 31 - 1
-        self.ports = {
-            0: self.get_key_from_input,  # порт 0: ввод
-            1: self.send_char_to_output  # порт 1: вывод
+        self.buffers = {
+            0: self.input_buffer0,  # порт 0: ввод
+            1: self.input_buffer1,  # порт 1: ввод
+            2: self.output_buffer0, # порт 2: вывод
+            3: self.output_buffer1  # порт 3: вывод
         }
-
-    def put_in_output_buffer(self, char):
-        self.output_buffer.append(char)
 
     def write_in_memory(self):
         addr = self.stack[-2] + self.program_memory_size
@@ -158,18 +158,18 @@ class Datapath:
     def tos_to_pc(self):
         self.program_counter = self.tos
 
-    def get_key_from_input(self):
-        if self.input_buffer:
-            ch = self.input_buffer.pop(0)
+    def get_key_from_input(self, port):
+        if self.buffers[port]:
+            ch = self.buffers[port].pop(0)
             self.tos = ord(ch)
             print(f"Read char '{ch}' (code {ord(ch)})")
         else:
             self.tos = 0
             print("Input buffer empty")
 
-    def send_char_to_output(self):
+    def send_char_to_output(self, port):
         value = chr(self.stack[-1])
-        self.put_in_output_buffer(value)
+        self.buffers[port].append(value)
         print(f"Output char '{value}'")
         self.stack = self.stack[:-1]
 
@@ -221,7 +221,6 @@ class ControlUnit:
             prev_mpc = self.mpc
             mc = mp[self.mpc]
             mc(self, instr)
-
             self.tick()
 
         if not self.halted and opcode not in (Opcode.JUMP, Opcode.EXIT, Opcode.HALT, Opcode.CALL):
@@ -374,13 +373,11 @@ class ControlUnit:
     def micro_key(self, instr):
         print(f"[tick {self._tick}] KEY")
         port = instr['arg']
-        if port in self.data_path.ports and port == 0:
-            self.data_path.ports[port]()
+        if port in self.data_path.buffers and (port == 0 or port == 1):
+            self.data_path.get_key_from_input(port)
         else:
             raise ValueError(f"Неизвестный порт для чтения: {port}")
         self.mpc -= 18
-
-
 
     # HALT
     def micro_halt(self, instr):
@@ -401,8 +398,8 @@ class ControlUnit:
     def micro_emit(self, instr):
         print(f"[tick {self._tick}] EMIT")
         port = instr['arg']
-        if port in self.data_path.ports and port == 1:
-            self.data_path.ports[port]()
+        if port in self.data_path.buffers and (port == 2 or port == 3):
+            self.data_path.send_char_to_output(port)
         else:
             raise ValueError(f"Неизвестный порт для записи: {port}")
 
@@ -421,7 +418,6 @@ class ControlUnit:
     def micro_tos(self, instr):
         print(f"[tick {self._tick}] FIRST_STACK -> TOS")
         self.data_path.write_tos()
-        return
 
     def micro_stack_to_a(self, instr):
         print(f"[tick {self._tick}] FIRST_STACK -> A")
@@ -440,7 +436,7 @@ class ControlUnit:
             self.mpc += 1
             self.rep_swap_dup = False
 
-    def micro_ret(self, insr):
+    def micro_ret(self, instr):
         print(f"[tick {self._tick}] RET")
         self.data_path.pop_return_stack()
         self.data_path.tos_to_pc()
@@ -453,8 +449,8 @@ class ControlUnit:
         return (f"Tick: {self._tick}, "
                 f"PC: {self.data_path.program_counter}, "
                 f"Stack: [{self.data_path.stack[-1]}, {self.data_path.stack[-2]}], "
-                f"Input: {self.data_path.input_buffer}, "
-                f"Output: {self.data_path.output_buffer}, "
+                f"Input: {self.data_path.input_buffer0}, "
+                f"Output: {self.data_path.output_buffer0}, "
                 f"tos: {self.data_path.tos}, "
                 f"a: {self.data_path.a}, "
                 f"b: {self.data_path.return_stack}, "
@@ -500,7 +496,7 @@ def simulation(code, input_tokens, data_memory_size, limit):
     if control_unit.get_tick() >= limit:
         logging.warning("Tick limit exceeded!")
 
-    return "".join(data_path.output_buffer), control_unit.get_tick()
+    return "".join(data_path.output_buffer0), control_unit.get_tick()
 
 
 # Массив микрокода
@@ -556,7 +552,7 @@ mapping = {
     Opcode.INVERT: 16,
     Opcode.IF: 17,
     Opcode.FETCH: 19,
-    Opcode.KEY: 20,
+    Opcode.IN: 20,
     Opcode.STORE: 21,
     Opcode.LIT: 22,
     Opcode.CALL: 24,
@@ -564,17 +560,17 @@ mapping = {
     Opcode.RET: 26,
     Opcode.DROP: 27,
     Opcode.DUP: 28,
-    Opcode.EMIT: 29,
+    Opcode.OUT: 29,
     Opcode.CARRY: 30,
     Opcode.HALT: 31
 }
 
 
-def main(code_file, input_file):
-    with open(code_file, "r", encoding="utf-8") as file:
+def main(code, file_input):
+    with open(code, "r", encoding="utf-8") as file:
         text_code = file.read()
     code = from_bytes(text_code)
-    with open(input_file, encoding="utf-8") as file:
+    with open(file_input, encoding="utf-8") as file:
         input_text = file.read()
         input_tokens = list(input_text)
 

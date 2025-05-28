@@ -6,7 +6,7 @@ _start:
     dup
     lit 48
     +
-    emit 1
+    out 2
 save:
     swap
     lit 0
