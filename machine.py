@@ -201,7 +201,7 @@ class ControlUnit:
     def new_input_index(self):
         self.input_index += 1
 
-    def process_next_tick(self):
+    def process_next_command(self):
         if self.halted:
             raise StopIteration()
 
@@ -486,7 +486,7 @@ def simulation(code, input_tokens, data_memory_size, limit):
     logging.debug("%s", control_unit)
     try:
         while control_unit.get_tick() < limit:
-            control_unit.process_next_tick()
+            control_unit.process_next_command()
             logging.debug("%s", control_unit)
     except EOFError:
         logging.warning("Input buffer is empty!")
