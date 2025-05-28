@@ -37,7 +37,7 @@ class Opcode(str, Enum):
     JUMP = "jump"  # Переход на метку
     CALL = "call"  # Переход на процедуру
     RET = "ret"  # Возвращение из процедуры
-    CARRY = "c"  # Загрузить значение Overflow-flag в стек
+    CARRY = "c"  # Загрузить значение Carry-flag в стек
 
     def __str__(self):
         return str(self.value)
