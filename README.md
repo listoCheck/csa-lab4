@@ -207,3 +207,6 @@ https://drive.google.com/file/d/1yH4xpJZjwfba7quabQ0sjdoASbY9od4I/view?usp=shari
   реализован mpc, который позволяет избежать множественного дублирования микрокоманд, 
   например такое есть во всех операциях АЛУ. Микрокод на команду будет выполняться, пока меняется mpc.
 
+## Схемы DataPath и ControlUnit
+![img.png](images/control_unit.png)
+![img.png](images/data_path.png)
