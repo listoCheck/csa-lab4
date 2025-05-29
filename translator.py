@@ -56,10 +56,14 @@ def text2terms(text):
 
     # Парсим термы
     for line_num, line in enumerate(lines, 1):
+        if ";" in line:
+            line = line.split(";")[0]
         words = line.split()
         for pos, word in enumerate(words, 1):
+            print(word)
             if ";" in word:
                 word = word.split(";")[0]
+
             if word.endswith(":") or word in symbols() or word in labels:
                 terms.append(Term(line_num, pos, word))
             else:
@@ -165,6 +169,7 @@ def translate(text):
                 i += 1
                 continue
             opcode = symbol2opcode(sym)
+            print(opcode)
             assert opcode is not None, f"Неизвестная операция: {sym}"
             code.append({
                 "index": pc,

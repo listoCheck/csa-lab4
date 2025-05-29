@@ -48,7 +48,7 @@ class Datapath:
         val = self.stack[-1]
         if 0 <= addr < self.data_memory_size:
             self.data_memory[addr] = val
-            print(f"Store {val} to address {addr}")
+            #print(f"Store {val} to address {addr}")
         else:
             raise Exception("Store address out of range")
         self.stack = self.stack[:-2]
@@ -58,7 +58,7 @@ class Datapath:
         self.stack = self.stack[:-1]
         if 0 <= addr < self.data_memory_size:
             val = self.data_memory[addr]
-            print(f"Fetched {val} from address {addr}")
+            #print(f"Fetched {val} from address {addr}")
         else:
             raise Exception("Fetch address out of range")
         return val
@@ -101,7 +101,7 @@ class Datapath:
         if operand == "/":
             if self.tos == 0:
                 raise Exception("Division by zero")
-            value = self.tos / self.stack_first
+            value = self.tos // self.stack_first
             self.stack = self.stack[:-1]
             value = self.check_carry(value)
         if operand == "~":
@@ -125,7 +125,7 @@ class Datapath:
             value = int(self.tos == self.stack_first)
             self.stack = self.stack[:-1]
         if operand == ">":
-            print(self.tos, self.stack_first)
+            #print(self.tos, self.stack_first)
             value = int(self.tos > self.stack_first)
             self.stack = self.stack[:-1]
         if operand == "<":
@@ -210,9 +210,9 @@ class ControlUnit:
 
         instr = self.data_path.data_memory[self.data_path.program_counter]
         opcode = instr["opcode"]
-        print(opcode)
+        #print(opcode)
         self.mpc = mapping.get(opcode, [])
-        print(self.mpc)
+        #print(self.mpc)
         prev_mpc = self.mpc
         mc = mp[prev_mpc]
         mc(self, instr)
@@ -437,7 +437,7 @@ class ControlUnit:
             self.rep_swap_dup = False
 
     def micro_ret(self, instr):
-        print(f"[tick {self._tick}] RET")
+        #print(f"[tick {self._tick}] RET")
         self.data_path.pop_return_stack()
         self.data_path.tos_to_pc()
 
@@ -574,7 +574,7 @@ def main(code, file_input):
         input_text = file.read()
         input_tokens = list(input_text)
 
-    output, ticks = simulation(code, input_tokens, data_memory_size=200, limit=2000)
+    output, ticks = simulation(code, input_tokens, data_memory_size=200, limit=200000000)
     print(output)
     print("ticks:", ticks)
 
