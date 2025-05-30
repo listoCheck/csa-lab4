@@ -58,8 +58,6 @@ def run_test(golden, caplog, need_ticks):
             print("============================================================")
             machine.main(target_hex, input_stream, not need_ticks)
 
-        with open(target, "rb") as file:
-            code = file.read()
         with open(target_hex, encoding="utf-8") as file:
             code_hex = file.read()
         if need_ticks:

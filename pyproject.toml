@@ -86,6 +86,10 @@ ignore = [
     "RUF002", # Docstring contains ambiguous `В` (CYRILLIC CAPITAL LETTER VE). Did you mean `B` (LATIN CAPITAL LETTER B)
     "RUF003", # Comment contains ambiguous `с` (CYRILLIC SMALL LETTER ES). Did you mean `c` (LATIN SMALL LETTER C)
     "PTH123", # `open()` should be replaced by `Path.open()`
+    "PTH120", # `os.path.dirname()` should be replaced by `Path.parent`
+    "PTH100", #  `os.path.abspath()` should be replaced by `Path.resolve()`
+    "PTH103", #  `os.makedirs()` should be replaced by `Path.mkdir(parents=True)`
+    "TRY003", # Avoid specifying long messages outside the exception class
     # to simplify code for non-Python programmers
     "PTH118", # `os.path.join()` should be replaced by `Path` with `/` operator
     "UP032",  # [*] Use f-string instead of `format` call
