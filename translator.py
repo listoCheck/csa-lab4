@@ -61,10 +61,6 @@ def text2terms(text):
             line = line.split(";")[0]
         words = line.split()
         for pos, word in enumerate(words, 1):
-            #print(word)
-            if ";" in word:
-                word = word.split(";")[0]
-
             if word.endswith(":") or word in symbols() or word in labels:
                 terms.append(Term(line_num, pos, word))
             else:

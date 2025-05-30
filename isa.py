@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from enum import Enum
 
-# Убрал импорт json, он не используется
-
 # Константы для магических чисел
 MAX_ARG_VALUE = 0xFFFFFFFF
 MAX_ARG_BYTES = 4

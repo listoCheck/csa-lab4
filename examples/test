@@ -1,0 +1,5 @@
+hello: byte "hello world"
+_start:
+    lit hello
+    out 2
+    halt
