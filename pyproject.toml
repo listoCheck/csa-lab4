@@ -98,6 +98,8 @@ ignore = [
     "TRY002", # делать свои эксепшены
     "RUF001", # чтобы все символы проходили
     "TRY200", # клаусы специфические
+    "I001", # Import block is un-sorted or un-formatted
+    "UP015", # Unnecessary open mode parameters
 
 
 ]

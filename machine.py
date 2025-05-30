@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from isa import Opcode, from_bytes, opcode_to_binary
+from isa import Opcode, from_bytes
 
 
 class Datapath:
