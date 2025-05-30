@@ -65,10 +65,7 @@ class Datapath:
         return val
 
     def flag_zero(self):
-        if self.tos == 0:
-            return True
-        else:
-            return False
+        return self.tos == 0
 
     def write_tos(self):
         self.tos = self.stack[-1]
@@ -468,29 +465,6 @@ class ControlUnit:
                     f"a: {self.data_path.a}, "
                     f"b: {self.data_path.return_stack}, "
                     f"dump: {self.data_path.data_memory[self.data_path.program_memory_size:self.data_path.program_memory_size + 25]}, ")
-
-
-    def __repr__(self):
-        state_repr = "TICK: {:3} PC: {:3} ADDR: {:3} MEM[ADDR]: {:3} STACK: [{}, {}] A: {}".format(
-            self._tick,
-            self.data_path.program_counter,
-            self.data_path.data_address,
-            self.data_path.data_memory[self.data_path.data_address],
-            self.data_path.stack_first,
-            self.data_path.stack_second,
-            self.data_path.a,
-        )
-        # print(self.data_path.program_counter, len(self.data_path.program) - 1)
-        if self.data_path.program_counter < len(self.data_path.program) - 1:
-            instr = self.data_path.program[self.data_path.program_counter]
-            opcode = instr["opcode"]
-            instr_repr = str(opcode)
-            if "arg" in instr:
-                instr_repr += " {}".format(instr["arg"])
-
-            instr_hex = f"{opcode_to_binary[opcode] << 24 | (instr.get('arg', 0) & 0x00FFFFFF):08X}"
-
-            return "{} \t{} [{}]".format(state_repr, instr_repr, instr_hex)
 
 
 def simulation(code, input_tokens, data_memory_size, limit):

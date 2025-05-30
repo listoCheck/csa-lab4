@@ -91,7 +91,7 @@ binary_to_opcode: dict[int, Opcode] = {v: k for k, v in opcode_to_binary.items()
 
 
 def to_bytes(
-    code: list[dict[str, Opcode | int]]
+        code: list[dict[str, Opcode | int]]
 ) -> bytes:
     binary_bytes = bytearray()
 
@@ -124,7 +124,7 @@ def to_bytes(
 
 
 def to_hex(
-    code: list[dict[str, Opcode | int]]
+        code: list[dict[str, Opcode | int]]
 ) -> str:
     result = []
 
@@ -155,7 +155,7 @@ def to_hex(
 
 
 def from_bytes(
-    binary_code: str,
+        binary_code: str,
 ) -> list[dict[str, int | Opcode]]:
     structured_code = []
 
