@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 
 from isa import Opcode, from_bytes, opcode_to_binary
@@ -39,7 +40,7 @@ class Datapath:
         self.buffers = {
             0: self.input_buffer0,  # порт 0: ввод
             1: self.input_buffer1,  # порт 1: ввод
-            2: self.output_buffer0, # порт 2: вывод
+            2: self.output_buffer0,  # порт 2: вывод
             3: self.output_buffer1  # порт 3: вывод
         }
 
@@ -48,7 +49,7 @@ class Datapath:
         val = self.stack[-1]
         if 0 <= addr < self.data_memory_size:
             self.data_memory[addr] = val
-            #print(f"Store {val} to address {addr}")
+            # print(f"Store {val} to address {addr}")
         else:
             raise Exception("Store address out of range")
         self.stack = self.stack[:-2]
@@ -58,7 +59,7 @@ class Datapath:
         self.stack = self.stack[:-1]
         if 0 <= addr < self.data_memory_size:
             val = self.data_memory[addr]
-            #print(f"Fetched {val} from address {addr}")
+            # print(f"Fetched {val} from address {addr}")
         else:
             raise Exception("Fetch address out of range")
         return val
@@ -125,7 +126,7 @@ class Datapath:
             value = int(self.tos == self.stack_first)
             self.stack = self.stack[:-1]
         if operand == ">":
-            #print(self.tos, self.stack_first)
+            # print(self.tos, self.stack_first)
             value = int(self.tos > self.stack_first)
             self.stack = self.stack[:-1]
         if operand == "<":
@@ -190,6 +191,7 @@ class ControlUnit:
         self.input_index = 0
         self.halted = False
         self.rep_swap_dup = False
+        self.exit_out = ""
 
     def tick(self):
         """Продвинуть модельное время процессора вперёд на один такт."""
@@ -203,6 +205,17 @@ class ControlUnit:
 
     def process_next_command(self):
         if self.halted:
+            sys.stdout = original_stdout
+            sys.stderr = original_stderr
+            print(f"Tick: {self._tick}, "
+                    f"PC: {self.data_path.program_counter}, "
+                    f"Stack: [{self.data_path.stack[-1]}, {self.data_path.stack[-2]}], "
+                    f"Input: {self.data_path.input_buffer0}, "
+                    f"Output: {self.data_path.output_buffer0}, "
+                    f"tos: {self.data_path.tos}, "
+                    f"a: {self.data_path.a}, "
+                    f"b: {self.data_path.return_stack}, "
+                    f"dump: {self.data_path.data_memory[self.data_path.program_memory_size:self.data_path.program_memory_size + 25]}, ")
             raise StopIteration()
 
         if self.data_path.program_counter >= self.data_path.program_memory_size:
@@ -210,9 +223,9 @@ class ControlUnit:
 
         instr = self.data_path.data_memory[self.data_path.program_counter]
         opcode = instr["opcode"]
-        #print(opcode)
+        # print(opcode)
         self.mpc = mapping.get(opcode, [])
-        #print(self.mpc)
+        # print(self.mpc)
         prev_mpc = self.mpc
         mc = mp[prev_mpc]
         mc(self, instr)
@@ -437,7 +450,7 @@ class ControlUnit:
             self.rep_swap_dup = False
 
     def micro_ret(self, instr):
-        #print(f"[tick {self._tick}] RET")
+        # print(f"[tick {self._tick}] RET")
         self.data_path.pop_return_stack()
         self.data_path.tos_to_pc()
 
@@ -447,14 +460,15 @@ class ControlUnit:
 
     def __str__(self):
         return (f"Tick: {self._tick}, "
-                f"PC: {self.data_path.program_counter}, "
-                f"Stack: [{self.data_path.stack[-1]}, {self.data_path.stack[-2]}], "
-                f"Input: {self.data_path.input_buffer0}, "
-                f"Output: {self.data_path.output_buffer0}, "
-                f"tos: {self.data_path.tos}, "
-                f"a: {self.data_path.a}, "
-                f"b: {self.data_path.return_stack}, "
-                f"dump: {self.data_path.data_memory[self.data_path.program_memory_size:self.data_path.program_memory_size + 25]}, ")
+                    f"PC: {self.data_path.program_counter}, "
+                    f"Stack: [{self.data_path.stack[-1]}, {self.data_path.stack[-2]}], "
+                    f"Input: {self.data_path.input_buffer0}, "
+                    f"Output: {self.data_path.output_buffer0}, "
+                    f"tos: {self.data_path.tos}, "
+                    f"a: {self.data_path.a}, "
+                    f"b: {self.data_path.return_stack}, "
+                    f"dump: {self.data_path.data_memory[self.data_path.program_memory_size:self.data_path.program_memory_size + 25]}, ")
+
 
     def __repr__(self):
         state_repr = "TICK: {:3} PC: {:3} ADDR: {:3} MEM[ADDR]: {:3} STACK: [{}, {}] A: {}".format(
@@ -566,7 +580,11 @@ mapping = {
 }
 
 
-def main(code, file_input):
+def main(code, file_input, out):
+    if out:
+        sys.stdout = open(os.devnull, "w")
+        sys.stderr = open(os.devnull, "w")
+        logging.getLogger().setLevel(logging.CRITICAL + 1)
     with open(code, "r", encoding="utf-8") as file:
         text_code = file.read()
     code = from_bytes(text_code)
@@ -579,8 +597,17 @@ def main(code, file_input):
     print("ticks:", ticks)
 
 
+original_stdout = sys.stdout
+original_stderr = sys.stderr
 if __name__ == "__main__":
-    logging.getLogger().setLevel(logging.DEBUG)
-    assert len(sys.argv) == 3, "Usage: machine.py <code_file> <input_file>"
-    _, code_file, input_file = sys.argv
-    main(code_file, input_file)
+    quiet = "--quiet" in sys.argv
+    if quiet:
+        sys.argv.remove("--quiet")
+        assert len(sys.argv) == 3, "Usage: machine.py <code_file> <input_file>"
+        _, code_file, input_file = sys.argv
+        main(code_file, input_file, True)
+    else:
+        logging.getLogger().setLevel(logging.DEBUG)
+        assert len(sys.argv) == 3, "Usage: machine.py <code_file> <input_file>"
+        _, code_file, input_file = sys.argv
+        main(code_file, input_file, False)

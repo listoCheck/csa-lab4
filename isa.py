@@ -135,7 +135,7 @@ def to_bytes(code):
                 raise ValueError(f"Аргумент {arg} требует более 4 байт")
 
             binary_bytes.extend(arg_bytes)
-    print(binary_bytes)
+    #print(binary_bytes)
     return bytes(binary_bytes)
 
 

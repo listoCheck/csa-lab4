@@ -45,8 +45,8 @@ def symbol2opcode(symbol):
 def text2terms(text):
     terms = []
     lines = text.splitlines()
-    print("\nПолученный код:")
-    print("\n".join(str(i) for i in lines))
+    #print("\nПолученный код:")
+    #print("\n".join(str(i) for i in lines))
     # Сначала найдём все метки
     labels = set()
     for line_num, line in enumerate(lines, 1):
@@ -60,7 +60,7 @@ def text2terms(text):
             line = line.split(";")[0]
         words = line.split()
         for pos, word in enumerate(words, 1):
-            print(word)
+            #print(word)
             if ";" in word:
                 word = word.split(";")[0]
 
@@ -169,7 +169,7 @@ def translate(text):
                 i += 1
                 continue
             opcode = symbol2opcode(sym)
-            print(opcode)
+            #print(opcode)
             assert opcode is not None, f"Неизвестная операция: {sym}"
             code.append({
                 "index": pc,
@@ -183,10 +183,10 @@ def translate(text):
     if not code or code[-1]["opcode"] != Opcode.HALT:
         code.append({"index": pc, "opcode": Opcode.HALT})
 
-    print("\nМетки:")
-    print(labels, '\n')
-    print("\nКод")
-    print("\n".join(str(i) for i in code))
+    #print("\nМетки:")
+    #print(labels, '\n')
+    #print("\nКод")
+    #print("\n".join(str(i) for i in code))
     return code
 
 
