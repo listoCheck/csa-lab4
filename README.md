@@ -49,9 +49,7 @@ https://drive.google.com/file/d/1yH4xpJZjwfba7quabQ0sjdoASbY9od4I/view?usp=shari
        | "if"
        | "!"
        | "@"
-       | "in"
        | "halt"
-       | "out"
        | "ret"
        | "c"
 
