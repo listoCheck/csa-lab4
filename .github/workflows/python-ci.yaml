@@ -31,3 +31,10 @@ jobs:
       - name: Generate coverage report
         run: |
           poetry run coverage report
+      - name: Run ruff linter
+        run: |
+          poetry run ruff check .
+
+      - name: Run mypy type checks
+        run: |
+          poetry run mypy .
