@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from isa import Opcode, from_bytes, opcode_to_binary
+from isa import Opcode, from_bytes
 
 
 class Datapath:
@@ -65,10 +65,10 @@ class Datapath:
         return val
 
     def flag_zero(self):
+        flag = False
         if self.tos == 0:
-            return True
-        else:
-            return False
+            flag = True
+        return flag
 
     def write_tos(self):
         self.tos = self.stack[-1]
