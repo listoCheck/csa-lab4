@@ -1,12 +1,12 @@
-"""Представление исходного и машинного кода.
+from __future__ import annotations
 
-Определено два представления:
-- Бинарное
-"""
-
-import json
-from collections import namedtuple
 from enum import Enum
+
+# Убрал импорт json, он не используется
+
+# Константы для магических чисел
+MAX_ARG_VALUE = 0xFFFFFFFF
+MAX_ARG_BYTES = 4
 
 
 class Opcode(str, Enum):
@@ -39,19 +39,25 @@ class Opcode(str, Enum):
     RET = "ret"  # Возвращение из процедуры
     CARRY = "c"  # Загрузить значение Carry-flag в стек
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.value)
 
 
-class Term(namedtuple("Term", "line pos symbol")):
-    """Описание выражения из исходного текста программы.
+class Term:
+    """
+    Описание выражения из исходного текста программы.
+    """
 
-        Сделано через класс, чтобы был docstring.
-        """
+    def __init__(self, line: int, pos: int, symbol: str):
+        self.line = line
+        self.pos = pos
+        self.symbol = symbol
+
+    def __repr__(self) -> str:
+        return f"Term(line={self.line}, pos={self.pos}, symbol={self.symbol!r})"
 
 
-# Словарь соответствия кодов операций их бинарному представлению
-opcode_to_binary = {
+opcode_to_binary: dict[Opcode, int] = {
     Opcode.DROP: 0x00,
     Opcode.DUP: 0x01,
     Opcode.SWAP: 0x02,
@@ -81,48 +87,23 @@ opcode_to_binary = {
     Opcode.CARRY: 0x20,
 }
 
-# Словарь соответствия бинарных значений к операциям
-binary_to_opcode = {
-    0x00: Opcode.DROP,
-    0x01: Opcode.DUP,
-    0x02: Opcode.SWAP,
-    0x03: Opcode.ADD,
-    0x04: Opcode.SUB,
-    0x05: Opcode.MUL,
-    0x06: Opcode.DIV,
-    0x07: Opcode.MOD,
-    0x08: Opcode.NEGATE,
-    0x09: Opcode.EQUAL,
-    0x0A: Opcode.LESS,
-    0x0B: Opcode.GREATER,
-    0x0C: Opcode.AND,
-    0x0D: Opcode.OR,
-    0x0E: Opcode.XOR,
-    0x0F: Opcode.INVERT,
-    0x10: Opcode.IF,
-    0x11: Opcode.STORE,
-    0x12: Opcode.FETCH,
-    0x13: Opcode.IN,
-    0x14: Opcode.HALT,
-    0x15: Opcode.LIT,
-    0x16: Opcode.OUT,
-    0x17: Opcode.JUMP,
-    0x18: Opcode.CALL,
-    0x19: Opcode.RET,
-    0x20: Opcode.CARRY,
-}
+binary_to_opcode: dict[int, Opcode] = {v: k for k, v in opcode_to_binary.items()}
 
 
-def to_bytes(code):
+def to_bytes(
+    code: list[dict[str, Opcode | int]]
+) -> bytes:
     binary_bytes = bytearray()
+
     for instr in code:
-        opcode_val = opcode_to_binary[instr["opcode"]] & 0xFF
+        opcode = instr["opcode"]
+        opcode_val = opcode_to_binary[opcode] & 0xFF
         binary_bytes.append(opcode_val)
 
-        if instr["opcode"] in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL, Opcode.IN, Opcode.OUT):
+        if opcode in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL, Opcode.IN, Opcode.OUT):
             arg = instr.get("arg", 0)
 
-            if not (0 <= arg <= 0xFFFFFFFF):
+            if not (0 <= arg <= MAX_ARG_VALUE):
                 raise ValueError(f"Аргумент {arg} превышает допустимые 32 бита")
 
             arg_bytes = []
@@ -131,26 +112,29 @@ def to_bytes(code):
                 arg_bytes.insert(0, temp & 0xFF)
                 temp >>= 8
 
-            if len(arg_bytes) > 4:
+            if len(arg_bytes) > MAX_ARG_BYTES:
                 raise ValueError(f"Аргумент {arg} требует более 4 байт")
 
+            if not arg_bytes:
+                arg_bytes = [0]
+
             binary_bytes.extend(arg_bytes)
-    #print(binary_bytes)
+
     return bytes(binary_bytes)
 
 
-def to_hex(code):
+def to_hex(
+    code: list[dict[str, Opcode | int]]
+) -> str:
     result = []
-    i = 0
-    iteration = 0
 
-    for instr in code:
-        opcode_val = opcode_to_binary[instr["opcode"]] & 0xFF
+    for iteration, instr in enumerate(code):
+        opcode = instr["opcode"]
+        opcode_val = opcode_to_binary[opcode] & 0xFF
         hex_parts = [f"{opcode_val:02X}"]
-        i += 1
 
         arg_str = ""
-        if instr["opcode"] in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL, Opcode.IN, Opcode.OUT):
+        if opcode in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL, Opcode.IN, Opcode.OUT):
             arg = instr.get("arg", 0)
             arg_bytes = []
             temp = arg
@@ -161,25 +145,26 @@ def to_hex(code):
                 arg_bytes = [0]
 
             hex_parts.extend(f"{b:02X}" for b in arg_bytes)
-            i += len(arg_bytes)
             arg_str = f" {arg}"
 
-        hex_word = ''.join(hex_parts)
-        mnemonic = instr["opcode"].value
+        hex_word = "".join(hex_parts)
+        mnemonic = opcode.value
         result.append(f"{iteration} - {hex_word} - {mnemonic}{arg_str}")
-        iteration += 1
 
     return "\n".join(result)
 
 
-def from_bytes(binary_code):
+def from_bytes(
+    binary_code: str,
+) -> list[dict[str, int | Opcode]]:
     structured_code = []
+
     for line in binary_code.strip().splitlines():
         parts = line.strip().split(" - ")
         if len(parts) < 3:
             continue
 
-        index_str, hex_word, mnemonic = parts
+        index_str, hex_word, _mnemonic = parts
         index = int(index_str)
         word_bytes = bytes.fromhex(hex_word)
 
@@ -190,14 +175,18 @@ def from_bytes(binary_code):
         opcode = binary_to_opcode.get(opcode_val)
 
         if opcode is None:
-            raise ValueError(f"Неизвестный бинарный код операции: {opcode_val:#X} в строке: {line}")
+            raise ValueError(
+                f"Неизвестный бинарный код операции: {opcode_val:#X} в строке: {line}"
+            )
 
         instr = {"index": index, "opcode": opcode}
 
         if opcode in (Opcode.IF, Opcode.LIT, Opcode.JUMP, Opcode.CALL, Opcode.IN, Opcode.OUT):
             arg_bytes = word_bytes[1:]
             if not arg_bytes:
-                raise ValueError(f"Инструкция {opcode} требует аргумент, но он отсутствует в строке: {line}")
+                raise ValueError(
+                    f"Инструкция {opcode} требует аргумент, но он отсутствует в строке: {line}"
+                )
 
             arg = 0
             for b in arg_bytes:
@@ -205,5 +194,5 @@ def from_bytes(binary_code):
             instr["arg"] = arg
 
         structured_code.append(instr)
-    return structured_code
 
+    return structured_code
