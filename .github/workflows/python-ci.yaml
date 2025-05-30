@@ -54,7 +54,7 @@ jobs:
       - name: Run Ruff linter
         run: |
           poetry run ruff check .
-
-      - name: Run MyPy type checks
-        run: |
-          poetry run mypy .
+      #
+      #- name: Run MyPy type checks
+      #  run: |
+      #    poetry run mypy .

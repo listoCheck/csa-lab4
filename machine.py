@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from isa import Opcode, from_bytes
+from isa import Opcode, from_bytes, opcode_to_binary
 
 
 class Datapath:
@@ -65,7 +65,10 @@ class Datapath:
         return val
 
     def flag_zero(self):
-        return self.tos == 0
+        if self.tos == 0:
+            return True
+        else:
+            return False
 
     def write_tos(self):
         self.tos = self.stack[-1]
@@ -465,6 +468,9 @@ class ControlUnit:
                     f"a: {self.data_path.a}, "
                     f"b: {self.data_path.return_stack}, "
                     f"dump: {self.data_path.data_memory[self.data_path.program_memory_size:self.data_path.program_memory_size + 25]}, ")
+
+
+
 
 
 def simulation(code, input_tokens, data_memory_size, limit):
