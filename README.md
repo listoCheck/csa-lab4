@@ -47,7 +47,6 @@ https://drive.google.com/file/d/1yH4xpJZjwfba7quabQ0sjdoASbY9od4I/view?usp=shari
        | "xor"
        | "invert"
        | "if"
-       | "exit"
        | "!"
        | "@"
        | "in"
@@ -225,7 +224,7 @@ input_stream - поток ввода
 каждая машинная команда может выполниться как за одну микрокоманду, так и за несколько,
 выполнение микрокода будет продолжаться до тех пор, когда меняется переменная mpc (микропрограмм каунтер)
 ## Схемы DataPath и ControlUnit
-![img.png](images/control_unit.png)
+![img.png](images/cu.png)
 ![img.png](images/data_path.png)
 
 ## Запуск golden-тестов
