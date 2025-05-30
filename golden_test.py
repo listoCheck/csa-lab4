@@ -15,8 +15,12 @@ MAX_LOG = 400000000
 def test_translator_and_machine_hello_world(golden, caplog):
     run_test(golden, caplog, True)
 
-@pytest.mark.golden_test("golden/hello_user_name.yml")
-def test_translator_and_machine_hello_user_name(golden, caplog):
+@pytest.mark.golden_test("golden/hello_user_name0.yml")
+def test_translator_and_machine_hello_user_name0(golden, caplog):
+    run_test(golden, caplog, True)
+
+@pytest.mark.golden_test("golden/hello_user_name1.yml")
+def test_translator_and_machine_hello_user_name1(golden, caplog):
     run_test(golden, caplog, True)
 
 @pytest.mark.golden_test("golden/cat.yml")
