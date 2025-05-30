@@ -25,4 +25,4 @@ jobs:
 
       - name: Run tests and collect coverage
         run: |
-          poetry run coverage run -m pytest .
+          poetry run coverage run -m pytest
