@@ -10,12 +10,6 @@ import translator
 MAX_LOG = 400000000
 
 
-@pytest.fixture
-def golden(request):
-    filename = request.param
-    with open(filename) as f:
-        data = f.read()
-    return data
 
 
 @pytest.mark.golden_test("golden/hello_world.yml")
