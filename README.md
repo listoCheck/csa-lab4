@@ -210,3 +210,18 @@ https://drive.google.com/file/d/1yH4xpJZjwfba7quabQ0sjdoASbY9od4I/view?usp=shari
 ## Схемы DataPath и ControlUnit
 ![img.png](images/control_unit.png)
 ![img.png](images/data_path.png)
+
+## Запуск golden-тестов
+```
+(.venv) PS C:\Users\artem\PycharmProjects\csa-lab4> pytest
+===================================================================================================== test session starts =====================================================================================================
+platform win32 -- Python 3.11.8, pytest-8.3.5, pluggy-1.6.0
+rootdir: C:\Users\artem\PycharmProjects\csa-lab4
+configfile: pytest.ini
+plugins: golden-0.2.2
+collected 6 items                                                                                                                                                                                                              
+
+golden_test.py ......                                                                                                                                                                                                    [100%]
+
+====================================================================================================== 6 passed in 1.06s ====================================================================================================== 
+```
