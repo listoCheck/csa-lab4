@@ -364,7 +364,7 @@ class ControlUnit:
         print("tos:", self.data_path.tos)
 
     def micro_if_2(self, instr):
-        addr = instr['arg']
+        addr = instr["arg"]
         if self.data_path.flag_zero():
             self.data_path.program_counter = addr - 1
             print(f"[tick {self._tick}] IF - переход на {addr}")
@@ -385,7 +385,7 @@ class ControlUnit:
     # KEY - получить символ из входного буфера
     def micro_key(self, instr):
         print(f"[tick {self._tick}] KEY")
-        port = instr['arg']
+        port = instr["arg"]
         if port in self.data_path.buffers and (port == 0 or port == 1):
             self.data_path.get_key_from_input(port)
         else:
@@ -405,12 +405,12 @@ class ControlUnit:
     def micro_lit_2(self, instr):
         print(f"[tick {self._tick}] LIT - загрузка значения {instr['arg']}")
         print(f"[tick {self._tick}] TOS -> STACK")
-        self.data_path.stack_push(instr['arg'])
+        self.data_path.stack_push(instr["arg"])
 
     # EMIT - выводить символ из stack_first
     def micro_emit(self, instr):
         print(f"[tick {self._tick}] EMIT")
-        port = instr['arg']
+        port = instr["arg"]
         if port in self.data_path.buffers and (port == 2 or port == 3):
             self.data_path.send_char_to_output(port)
         else:

@@ -89,11 +89,11 @@ ignore = [
     # to simplify code for non-Python programmers
     "PTH118", # `os.path.join()` should be replaced by `Path` with `/` operator
     "UP032",  # [*] Use f-string instead of `format` call
-    "C901",
-    "ERA001",
-    "TRY002",
-    "RUF001",
-    "TRY200",
+    "C901", # чтобы алу нормально работало
+    "ERA001", # комментированный код
+    "TRY002", # делать свои эксепшены
+    "RUF001", # чтобы все символы проходили
+    "TRY200", # клаусы специфические
 
 
 ]

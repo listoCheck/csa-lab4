@@ -225,3 +225,28 @@ golden_test.py ......                                                           
 
 ====================================================================================================== 6 passed in 1.06s ====================================================================================================== 
 ```
+работа тестов на github:
+```
+Run poetry run coverage run -m pytest
+/home/runner/.cache/pypoetry/virtualenvs/forth-yJKRdTo1-py3.11/lib/python3.11/site-packages/pytest_golden/plugin.py:53: GoldenTestUsageWarning: Add 'enable_assertion_pass_hook=true' to pytest.ini for safer usage of pytest-golden.
+  warnings.warn(
+============================= test session starts ==============================
+platform linux -- Python 3.11.12, pytest-7.4.4, pluggy-1.6.0
+rootdir: /home/runner/work/csa-lab4/csa-lab4
+configfile: pytest.ini
+plugins: golden-0.2.2
+collected 7 items
+
+golden_test.py .......                                                   [100%]
+
+============================== 7 passed in 2.65s ===============================
+Run poetry run coverage report
+Name             Stmts   Miss  Cover
+------------------------------------
+golden_test.py      53      0   100%
+isa.py             113      8    93%
+machine.py         396     61    85%
+translator.py      118     13    89%
+------------------------------------
+TOTAL              680     82    88%
+```
