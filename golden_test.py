@@ -6,7 +6,6 @@ import os
 import tempfile
 import machine
 import translator
-
 MAX_LOG = 400000000
 
 
