@@ -1,4 +1,0 @@
-1) запуск транслятора
-translator.py input target.bin
-2) запуск симуляции
-machine.py target.bin.hex inputIO
