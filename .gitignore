@@ -4,3 +4,5 @@ output.bin.hex
 output.bin
 input
 pytest.ini
+__pycache__
+.idea
