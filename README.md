@@ -1,6 +1,6 @@
 # csa-lab4
 # Laboratory work № 4. Experiment
-- Амузинский Артем Андреевич, P3206
+Амузинский Артем Андреевич, P3206
 - Ваиант: `alg -> forth | stack | neum | mc | tick | binary | stream | port | pstr | prob1 | cache`
 - Расшифровка варианта:
   - `forth`: forth-like stack-based syntax with Reverse Polish Notation (RPN)
