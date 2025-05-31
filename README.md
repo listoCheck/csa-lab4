@@ -223,7 +223,7 @@ input_stream - поток ввода
 выполнение микрокода будет продолжаться до тех пор, когда меняется переменная mpc (микропрограмм каунтер)
 ## Схемы DataPath и ControlUnit
 ![img.png](images/cu.png)
-![img.png](images/dp.png)
+![img.png](images/img.png)
 
 ## Запуск golden-тестов
 ```
