@@ -31,10 +31,10 @@ def test_translator_and_machine_cat(golden, caplog):
 def test_translator_and_machine_sort(golden, caplog):
     run_test(golden, caplog, True)
 
-#@pytest.mark.golden_test("golden/carry_check.yml")
-#def test_translator_and_machine_carry_check(golden, caplog):
-#    run_test(golden, caplog, True)
-#
+@pytest.mark.golden_test("golden/carry_check.yml")
+def test_translator_and_machine_carry_check(golden, caplog):
+    run_test(golden, caplog, True)
+
 @pytest.mark.golden_test("golden/prob.yml")
 def test_translator_and_machine_prob1(golden, caplog):
     run_test(golden, caplog, False)

@@ -224,7 +224,6 @@ def make_zeros(num, code):
 def bin_to_opcode(binary_code):
     #print(binary_code)
     code = []
-
     i = (
             (binary_code[4] << 24)
             | (binary_code[5] << 16)

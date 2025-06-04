@@ -1,10 +1,10 @@
 0x0 VARIABLE first_part
 0x0 VARIABLE second_part
 _start:
-    lit 0x7FFFFFFF
+    lit 0x7FFFFF
     lit 256
     *
-    lit 1 +
+    lit 256 +
     c
     dup
     lit 48

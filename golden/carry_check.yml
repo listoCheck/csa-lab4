@@ -1,131 +1,151 @@
 in_code: |-
+  0x0 VARIABLE first_part
+  0x0 VARIABLE second_part
   _start:
-    lit 0x7FFFFFFF
-    lit 1
-    +
-    c
-    dup
-    lit 48
-    +
-    out 2
+      lit 0x7FFFFF
+      lit 256
+      *
+      lit 256 +
+      c
+      dup
+      lit 48
+      +
+      out 2
   save:
-    swap
-    lit 0
-    swap
-    !
-    lit 1
-    swap
-    !
-    halt
-in_stdin: |-
-  5Artem
+      swap
+      lit first_part
+      swap
+      !
+      lit second_part
+      swap
+      !
+      halt
+in_stdin: |
+
 out_code_hex: |-
-  0 - 157FFFFFFF - lit 2147483647
-  1 - 1501 - lit 1
-  2 - 03 - +
-  3 - 20 - c
-  4 - 01 - dup
-  5 - 1530 - lit 48
-  6 - 03 - +
-  7 - 1602 - out 2
-  8 - 02 - swap
-  9 - 1500 - lit 0
-  10 - 02 - swap
-  11 - 11 - !
-  12 - 1501 - lit 1
-  13 - 02 - swap
-  14 - 11 - !
-  15 - 14 - halt
+  0x8 -   157FFFFF - lit (007FFFFF)
+  0xc -   15000100 - lit (00000100)
+  0x10 -          5 - *
+  0x11 -   15000100 - lit (00000100)
+  0x15 -          3 - +
+  0x16 -         20 - c
+  0x17 -          1 - dup
+  0x18 -   15000030 - lit (00000030)
+  0x1c -          3 - +
+  0x1d -   16000002 - out (00000002)
+  0x21 -          2 - swap
+  0x22 -   15000033 - lit (00000033)
+  0x26 -          2 - swap
+  0x27 -         11 - !
+  0x28 -   15000037 - lit (00000037)
+  0x2c -          2 - swap
+  0x2d -         11 - !
+  0x2e -         14 - halt
+  0x2f -          0 - second_part
+  0x33 -          0 - second_part
 
-out_stdout: |2
-
-  Машинный код
-  0 - 157FFFFFFF - lit 2147483647
-  1 - 1501 - lit 1
-  2 - 03 - +
-  3 - 20 - c
-  4 - 01 - dup
-  5 - 1530 - lit 48
-  6 - 03 - +
-  7 - 1602 - out 2
-  8 - 02 - swap
-  9 - 1500 - lit 0
-  10 - 02 - swap
-  11 - 11 - !
-  12 - 1501 - lit 1
-  13 - 02 - swap
-  14 - 11 - !
-  15 - 14 - halt
-
-  source LoC: 18 code instr: 16
+out_stdout: |
+  {'address': 12, 'opcode': <Opcode.LIT: 'lit'>, 'arg': 8388607, 'term': Term(line=3, pos=2, word='0x7FFFFF')}
+  {'address': 16, 'opcode': <Opcode.LIT: 'lit'>, 'arg': 256, 'term': Term(line=4, pos=2, word='256')}
+  {'address': 20, 'opcode': <Opcode.MUL: '*'>, 'term': Term(line=5, pos=1, word='*')}
+  {'address': 21, 'opcode': <Opcode.LIT: 'lit'>, 'arg': 256, 'term': Term(line=6, pos=2, word='256')}
+  {'address': 25, 'opcode': <Opcode.ADD: '+'>, 'term': Term(line=6, pos=3, word='+')}
+  {'address': 26, 'opcode': <Opcode.CARRY: 'c'>, 'term': Term(line=7, pos=1, word='c')}
+  {'address': 27, 'opcode': <Opcode.DUP: 'dup'>, 'term': Term(line=8, pos=1, word='dup')}
+  {'address': 28, 'opcode': <Opcode.LIT: 'lit'>, 'arg': 48, 'term': Term(line=9, pos=2, word='48')}
+  {'address': 32, 'opcode': <Opcode.ADD: '+'>, 'term': Term(line=10, pos=1, word='+')}
+  {'address': 33, 'opcode': <Opcode.OUT: 'out'>, 'arg': 2, 'term': Term(line=11, pos=2, word='2')}
+  {'address': 37, 'opcode': <Opcode.SWAP: 'swap'>, 'term': Term(line=13, pos=1, word='swap')}
+  {'address': 38, 'opcode': <Opcode.LIT: 'lit'>, 'arg': 51, 'term': Term(line=14, pos=1, word='lit')}
+  {'address': 42, 'opcode': <Opcode.SWAP: 'swap'>, 'term': Term(line=15, pos=1, word='swap')}
+  {'address': 43, 'opcode': <Opcode.STORE: '!'>, 'term': Term(line=16, pos=1, word='!')}
+  {'address': 44, 'opcode': <Opcode.LIT: 'lit'>, 'arg': 55, 'term': Term(line=17, pos=1, word='lit')}
+  {'address': 48, 'opcode': <Opcode.SWAP: 'swap'>, 'term': Term(line=18, pos=1, word='swap')}
+  {'address': 49, 'opcode': <Opcode.STORE: '!'>, 'term': Term(line=19, pos=1, word='!')}
+  {'address': 50, 'opcode': <Opcode.HALT: 'halt'>, 'term': Term(line=20, pos=1, word='halt')}
+  {'address': 51, 'arg': 0}
+  {'address': 55, 'arg': 0}
+  source LoC: 81 code instr: 20
   ============================================================
+  ['0', '0', '0', '0', '0', '0', '0', '0', {'index': 8, 'opcode': <Opcode.LIT: 'lit'>, 'arg': 8388607}, '0', '0', '0', {'index': 12, 'opcode': <Opcode.LIT: 'lit'>, 'arg': 256}, '0', '0', '0', {'index': 16, 'opcode': <Opcode.MUL: '*'>}, {'index': 17, 'opcode': <Opcode.LIT: 'lit'>, 'arg': 256}, '0', '0', '0', {'index': 21, 'opcode': <Opcode.ADD: '+'>}, {'index': 22, 'opcode': <Opcode.CARRY: 'c'>}, {'index': 23, 'opcode': <Opcode.DUP: 'dup'>}, {'index': 24, 'opcode': <Opcode.LIT: 'lit'>, 'arg': 48}, '0', '0', '0', {'index': 28, 'opcode': <Opcode.ADD: '+'>}, {'index': 29, 'opcode': <Opcode.OUT: 'out'>, 'arg': 2}, '0', '0', '0', {'index': 33, 'opcode': <Opcode.SWAP: 'swap'>}, {'index': 34, 'opcode': <Opcode.LIT: 'lit'>, 'arg': 51}, '0', '0', '0', {'index': 38, 'opcode': <Opcode.SWAP: 'swap'>}, {'index': 39, 'opcode': <Opcode.STORE: '!'>}, {'index': 40, 'opcode': <Opcode.LIT: 'lit'>, 'arg': 55}, '0', '0', '0', {'index': 44, 'opcode': <Opcode.SWAP: 'swap'>}, {'index': 45, 'opcode': <Opcode.STORE: '!'>}, {'index': 46, 'opcode': <Opcode.HALT: 'halt'>}, 0, '0', '0', '0', 0]
+  48 [0, '0', '0', '0', 0]
   [tick 0] LIT - подготовка
-  [tick 1] LIT - загрузка значения 2147483647
+  [tick 1] LIT - загрузка значения 8388607
   [tick 1] TOS -> STACK
   [tick 2] LIT - подготовка
-  [tick 3] LIT - загрузка значения 1
+  [tick 3] LIT - загрузка значения 256
   [tick 3] TOS -> STACK
-  [tick 4] ADD
+  [tick 4] MUL
   [tick 4] FIRST_STACK -> TOS
   [tick 5] TOS -> FIRST_STACK
-  [tick 6] CARRY
-  [tick 7] DUP
-  [tick 8] TOS -> FIRST_STACK
-  [tick 9] A -> TOS
-  [tick 10] TOS -> FIRST_STACK
-  [tick 11] LIT - подготовка
-  [tick 12] LIT - загрузка значения 48
-  [tick 12] TOS -> STACK
-  [tick 13] ADD
-  [tick 13] FIRST_STACK -> TOS
+  [tick 6] LIT - подготовка
+  [tick 7] LIT - загрузка значения 256
+  [tick 7] TOS -> STACK
+  [tick 8] ADD
+  [tick 8] FIRST_STACK -> TOS
+  [tick 9] TOS -> FIRST_STACK
+  [tick 10] CARRY
+  [tick 11] DUP
+  [tick 12] TOS -> FIRST_STACK
+  [tick 13] A -> TOS
   [tick 14] TOS -> FIRST_STACK
-  [tick 15] EMIT
+  [tick 15] LIT - подготовка
+  [tick 16] LIT - загрузка значения 48
+  [tick 16] TOS -> STACK
+  [tick 17] ADD
+  [tick 17] FIRST_STACK -> TOS
+  [tick 18] TOS -> FIRST_STACK
+  [tick 19] EMIT
   Output char '1'
-  [tick 16] SWAP
-  [tick 16] FIRST_STACK -> TOS
-  [tick 18] FIRST_STACK -> A
-  [tick 19] TOS -> FIRST_STACK
-  [tick 20] A -> TOS
-  [tick 21] TOS -> FIRST_STACK
-  [tick 22] LIT - подготовка
-  [tick 23] LIT - загрузка значения 0
-  [tick 23] TOS -> STACK
-  [tick 24] SWAP
-  [tick 24] FIRST_STACK -> TOS
-  [tick 26] FIRST_STACK -> A
-  [tick 27] TOS -> FIRST_STACK
-  [tick 28] A -> TOS
-  [tick 29] TOS -> FIRST_STACK
-  [tick 30] STORE
-  [tick 31] LIT - подготовка
-  [tick 32] LIT - загрузка значения 1
-  [tick 32] TOS -> STACK
-  [tick 33] SWAP
-  [tick 33] FIRST_STACK -> TOS
-  [tick 35] FIRST_STACK -> A
-  [tick 36] TOS -> FIRST_STACK
-  [tick 37] A -> TOS
-  [tick 38] TOS -> FIRST_STACK
-  [tick 39] STORE
-  [tick 40] HALT
+  [tick 20] SWAP
+  [tick 20] FIRST_STACK -> TOS
+  [tick 22] FIRST_STACK -> A
+  [tick 23] TOS -> FIRST_STACK
+  [tick 24] A -> TOS
+  [tick 25] TOS -> FIRST_STACK
+  [tick 26] LIT - подготовка
+  [tick 27] LIT - загрузка значения 51
+  [tick 27] TOS -> STACK
+  [tick 28] SWAP
+  [tick 28] FIRST_STACK -> TOS
+  [tick 30] FIRST_STACK -> A
+  [tick 31] TOS -> FIRST_STACK
+  [tick 32] A -> TOS
+  [tick 33] TOS -> FIRST_STACK
+  [tick 34] STORE
+  Store 0 to address 51
+  [tick 35] LIT - подготовка
+  [tick 36] LIT - загрузка значения 55
+  [tick 36] TOS -> STACK
+  [tick 37] SWAP
+  [tick 37] FIRST_STACK -> TOS
+  [tick 39] FIRST_STACK -> A
+  [tick 40] TOS -> FIRST_STACK
+  [tick 41] A -> TOS
+  [tick 42] TOS -> FIRST_STACK
+  [tick 43] STORE
+  Store 1 to address 55
+  [tick 44] HALT
 
 
 out_log: |-
-  DEBUG    root:machine.py:480 Tick: 0, PC: 0, Stack: [0, 0], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: [], tos: 0, a: 0, b: [], dump: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  DEBUG    root:machine.py:484 Tick: 2, PC: 1, Stack: [2147483647, 0], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: [], tos: 0, a: 0, b: [], dump: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  DEBUG    root:machine.py:484 Tick: 4, PC: 2, Stack: [1, 2147483647], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: [], tos: 0, a: 0, b: [], dump: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  DEBUG    root:machine.py:484 Tick: 6, PC: 3, Stack: [0, 0], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: [], tos: 0, a: 0, b: [], dump: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  DEBUG    root:machine.py:484 Tick: 7, PC: 4, Stack: [1, 0], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: [], tos: 0, a: 0, b: [], dump: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  DEBUG    root:machine.py:484 Tick: 11, PC: 5, Stack: [1, 1], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: [], tos: 1, a: 1, b: [], dump: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  DEBUG    root:machine.py:484 Tick: 13, PC: 6, Stack: [48, 1], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: [], tos: 1, a: 1, b: [], dump: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  DEBUG    root:machine.py:484 Tick: 15, PC: 7, Stack: [49, 1], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: [], tos: 49, a: 1, b: [], dump: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  DEBUG    root:machine.py:484 Tick: 16, PC: 8, Stack: [1, 0], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: ['1'], tos: 49, a: 1, b: [], dump: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  DEBUG    root:machine.py:484 Tick: 22, PC: 9, Stack: [0, 1], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: ['1'], tos: 0, a: 0, b: [], dump: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  DEBUG    root:machine.py:484 Tick: 24, PC: 10, Stack: [0, 0], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: ['1'], tos: 0, a: 0, b: [], dump: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  DEBUG    root:machine.py:484 Tick: 30, PC: 11, Stack: [0, 0], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: ['1'], tos: 0, a: 0, b: [], dump: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  DEBUG    root:machine.py:484 Tick: 31, PC: 12, Stack: [1, 0], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: ['1'], tos: 0, a: 0, b: [], dump: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  DEBUG    root:machine.py:484 Tick: 33, PC: 13, Stack: [1, 1], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: ['1'], tos: 0, a: 0, b: [], dump: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  DEBUG    root:machine.py:484 Tick: 39, PC: 14, Stack: [1, 1], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: ['1'], tos: 1, a: 1, b: [], dump: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  DEBUG    root:machine.py:484 Tick: 40, PC: 15, Stack: [0, 0], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: ['1'], tos: 1, a: 1, b: [], dump: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
-  DEBUG    root:machine.py:484 Tick: 41, PC: 15, Stack: [0, 0], Input: ['5', 'A', 'r', 't', 'e', 'm'], Output: ['1'], tos: 1, a: 1, b: [], dump: [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:490 Tick: 0, PC: 0, Stack: [0, 0], Input: [], Output: [], tos: 0, a: 0, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 2, PC: 9, Stack: [8388607, 0], Input: [], Output: [], tos: 0, a: 0, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 4, PC: 13, Stack: [256, 8388607], Input: [], Output: [], tos: 0, a: 0, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 6, PC: 17, Stack: [2147483392, 0], Input: [], Output: [], tos: 2147483392, a: 0, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 8, PC: 18, Stack: [256, 2147483392], Input: [], Output: [], tos: 2147483392, a: 0, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 10, PC: 22, Stack: [0, 0], Input: [], Output: [], tos: 0, a: 0, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 11, PC: 23, Stack: [1, 0], Input: [], Output: [], tos: 0, a: 0, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 15, PC: 24, Stack: [1, 1], Input: [], Output: [], tos: 1, a: 1, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 17, PC: 25, Stack: [48, 1], Input: [], Output: [], tos: 1, a: 1, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 19, PC: 29, Stack: [49, 1], Input: [], Output: [], tos: 49, a: 1, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 20, PC: 30, Stack: [1, 0], Input: [], Output: ['1'], tos: 49, a: 1, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 26, PC: 34, Stack: [0, 1], Input: [], Output: ['1'], tos: 0, a: 0, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 28, PC: 35, Stack: [51, 0], Input: [], Output: ['1'], tos: 0, a: 0, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 34, PC: 39, Stack: [0, 51], Input: [], Output: ['1'], tos: 0, a: 0, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 35, PC: 40, Stack: [1, 0], Input: [], Output: ['1'], tos: 0, a: 0, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 37, PC: 41, Stack: [55, 1], Input: [], Output: ['1'], tos: 0, a: 0, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 43, PC: 45, Stack: [1, 55], Input: [], Output: ['1'], tos: 1, a: 1, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 44, PC: 46, Stack: [0, 0], Input: [], Output: ['1'], tos: 1, a: 1, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
+  DEBUG    root:machine.py:494 Tick: 45, PC: 46, Stack: [0, 0], Input: [], Output: ['1'], tos: 1, a: 1, b: [], dump: [0, '0', '0', '0', 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 
   EOF
