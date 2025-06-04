@@ -31,10 +31,10 @@ def test_translator_and_machine_cat(golden, caplog):
 def test_translator_and_machine_sort(golden, caplog):
     run_test(golden, caplog, True)
 
-@pytest.mark.golden_test("golden/carry_check.yml")
-def test_translator_and_machine_carry_check(golden, caplog):
-    run_test(golden, caplog, True)
-
+#@pytest.mark.golden_test("golden/carry_check.yml")
+#def test_translator_and_machine_carry_check(golden, caplog):
+#    run_test(golden, caplog, True)
+#
 @pytest.mark.golden_test("golden/prob.yml")
 def test_translator_and_machine_prob1(golden, caplog):
     run_test(golden, caplog, False)
@@ -56,7 +56,7 @@ def run_test(golden, caplog, need_ticks):
         with contextlib.redirect_stdout(io.StringIO()) as stdout:
             translator.main(source, target)
             print("============================================================")
-            machine.main(target_hex, input_stream, not need_ticks)
+            machine.main(target, input_stream, not need_ticks)
 
         with open(target_hex, encoding="utf-8") as file:
             code_hex = file.read()

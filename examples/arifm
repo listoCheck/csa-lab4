@@ -1,7 +1,10 @@
+0x0 VARIABLE first_part
+0x0 VARIABLE second_part
 _start:
     lit 0x7FFFFFFF
-    lit 1
-    +
+    lit 256
+    *
+    lit 1 +
     c
     dup
     lit 48
@@ -9,10 +12,10 @@ _start:
     out 2
 save:
     swap
-    lit 0
+    lit first_part
     swap
     !
-    lit 1
+    lit second_part
     swap
     !
     halt

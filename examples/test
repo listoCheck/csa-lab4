@@ -1,5 +1,32 @@
-hello: byte "hello world"
+S" Hello, world!" VARIABLE hello_world
+0x0 VARIABLE index
+0x0 VARIABLE len
 _start:
-    lit hello
+    lit len
+    lit hello_world @
+    !
+    lit index
+    lit hello_world
+    dup
+    lit 4 +
+    !
+while:
+    lit 1
+    lit len @
+    -
+    dup
+    if end
+    lit len
+    swap
+    !
+    lit index @
     out 2
+    lit index
+    dup
+    @
+    lit 4
+    +
+    !
+    jump while
+end:
     halt

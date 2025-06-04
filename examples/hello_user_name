@@ -1,3 +1,8 @@
+S" Hello, what is your name?" VARIABLE what
+S" Hello, " VARIABLE hello_name
+0x0 VARIABLE index
+0x0 VARIABLE dup_ind
+0x0 VARIABLE len
 _start:
     in 0
     dup
@@ -5,11 +10,17 @@ _start:
     lit 48
     call rep
     !
+    lit dup_ind
+    lit index @
+    !
     call hello
+    lit index
+    lit dup_ind @
+    !
 while:
     in 0
     out 2
-    lit 5
+    lit index
     @
     lit 1
     call rep
@@ -20,64 +31,64 @@ while:
 rep:
     swap
     -
-    lit 5
+    lit index
     swap
     ret
-end:
-    lit 33
-    out 2
-    halt
 hello:
-    lit 72
+    lit len
+    lit hello_name @
+    !
+    lit index
+    lit hello_name
+    lit 4
+    +
+    !
+while_hello:
+    lit index @ @
     out 2
-    lit 101
-    out 2
-    lit 108
-    out 2
-    lit 108
-    out 2
-    lit 111
-    out 2
-    lit 44
-    out 2
-    lit 32
-    out 2
-    ret
+    lit index
+    dup
+    @
+    lit 4
+    +
+    !
+    lit 1
+    lit len @
+    -
+    dup
+    if end_hello
+    lit len
+    swap
+    !
+    jump while_hello
 name:
-    lit 87
+    lit len
+    lit what @
+    !
+    lit index
+    lit what
+    lit 4
+    +
+    !
+while_name:
+    lit index @ @
     out 2
-    lit 104
-    out 2
-    lit 97
-    out 2
-    lit 116
-    out 2
-    lit 32
-    out 2
-    lit 105
-    out 2
-    lit 115
-    out 2
-    lit 32
-    out 2
-    lit 121
-    out 2
-    lit 111
-    out 2
-    lit 117
-    out 2
-    lit 114
-    out 2
-    lit 32
-    out 2
-    lit 110
-    out 2
-    lit 97
-    out 2
-    lit 109
-    out 2
-    lit 101
-    out 2
-    lit 63
-    out 2
+    lit index
+    dup
+    @
+    lit 4
+    +
+    !
+    lit 1
+    lit len @
+    -
+    dup
+    if end
+    lit len
+    swap
+    !
+    jump while_name
+end_hello:
+    ret
+end:
     halt

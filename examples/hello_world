@@ -1,38 +1,32 @@
+S" Hello, world!" VARIABLE hello_world
+0x0 VARIABLE index
+0x0 VARIABLE len
 _start:
-    lit 72
+    lit len
+    lit hello_world @
+    !
+    lit index
+    lit hello_world
+    lit 4
+    +
+    !
+while:
+    lit index @ @
     out 2
-
-    lit 101
-    out 2
-
-    lit 108
-    out 2
-
-    lit 108
-    out 2
-
-    lit 111
-    out 2
-
-    lit 32
-    out 2
-
-    lit 87
-    out 2
-
-    lit 111
-    out 2
-
-    lit 114
-    out 2
-
-    lit 108
-    out 2
-
-    lit 100
-    out 2
-
-    lit 33
-    out 2
-
+    lit index
+    dup
+    @
+    lit 4
+    +
+    !
+    lit 1
+    lit len @
+    -
+    dup
+    if end
+    lit len
+    swap
+    !
+    jump while
+end:
     halt

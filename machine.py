@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from isa import Opcode, from_bytes
+from isa import Opcode, bin_to_opcode
 
 
 class Datapath:
@@ -17,11 +17,12 @@ class Datapath:
     program_memory_size = None
     return_stack = None
 
-    def __init__(self, data_memory_size, input_buffer0, program):
+    def __init__(self, data_memory_size, input_buffer0, program, code_len):
+        self.code_len = code_len
         self.program = program
         self.program_counter = 0
         assert data_memory_size > 0, "Data_memory size should be non-zero"
-        self.program_memory_size = len(program)
+        self.program_memory_size = 0
         self.data_memory_size = data_memory_size
         self.input_buffer0 = input_buffer0
         self.input_buffer1 = []
@@ -45,21 +46,21 @@ class Datapath:
         }
 
     def write_in_memory(self):
-        addr = self.stack[-2] + self.program_memory_size
+        addr = self.stack[-2]
         val = self.stack[-1]
         if 0 <= addr < self.data_memory_size:
             self.data_memory[addr] = val
-            # print(f"Store {val} to address {addr}")
+            print(f"Store {val} to address {addr}")
         else:
             raise Exception("Store address out of range")
         self.stack = self.stack[:-2]
 
     def read_from_memory(self):
-        addr = self.stack[-1] + self.program_memory_size
+        addr = self.stack[-1]
         self.stack = self.stack[:-1]
         if 0 <= addr < self.data_memory_size:
             val = self.data_memory[addr]
-            # print(f"Fetched {val} from address {addr}")
+            print(f"Fetched {val} from address {addr}")
         else:
             raise Exception("Fetch address out of range")
         return val
@@ -169,7 +170,12 @@ class Datapath:
             print("Input buffer empty")
 
     def send_char_to_output(self, port):
-        value = chr(self.stack[-1])
+        if self.stack[-1] < 32:
+            value = str(self.stack[-1])
+        elif self.stack[-1] > 125:
+            value = str(self.stack[-1])
+        else:
+            value = chr(self.stack[-1])
         self.buffers[port].append(value)
         print(f"Output char '{value}'")
         self.stack = self.stack[:-1]
@@ -215,13 +221,17 @@ class ControlUnit:
                     f"tos: {self.data_path.tos}, "
                     f"a: {self.data_path.a}, "
                     f"b: {self.data_path.return_stack}, "
-                    f"dump: {self.data_path.data_memory[self.data_path.program_memory_size:self.data_path.program_memory_size + 25]}, ")
+                    f"dump: {self.data_path.data_memory[self.data_path.code_len:self.data_path.code_len + 50]}, ")
             raise StopIteration()
 
-        if self.data_path.program_counter >= self.data_path.program_memory_size:
-            raise StopIteration()
+        #if self.data_path.program_counter >= self.data_path.program_memory_size:
+        #    raise StopIteration()
 
         instr = self.data_path.data_memory[self.data_path.program_counter]
+        if instr == "0":
+            while instr == "0":
+                self.data_path.program_counter += 1
+                instr = self.data_path.data_memory[self.data_path.program_counter]
         opcode = instr["opcode"]
         # print(opcode)
         self.mpc = mapping.get(opcode, [])
@@ -236,7 +246,7 @@ class ControlUnit:
             mc(self, instr)
             self.tick()
 
-        if not self.halted and opcode not in (Opcode.JUMP, Opcode.EXIT, Opcode.HALT, Opcode.CALL):
+        if not self.halted and opcode not in (Opcode.JUMP, Opcode.HALT, Opcode.CALL):
             self.data_path.program_counter += 1
 
     def micro_push(self, instr):
@@ -467,14 +477,14 @@ class ControlUnit:
                     f"tos: {self.data_path.tos}, "
                     f"a: {self.data_path.a}, "
                     f"b: {self.data_path.return_stack}, "
-                    f"dump: {self.data_path.data_memory[self.data_path.program_memory_size:self.data_path.program_memory_size + 25]}, ")
+                    f"dump: {self.data_path.data_memory[self.data_path.code_len-1:self.data_path.code_len + 50]}, ")
 
 
 
 
 
-def simulation(code, input_tokens, data_memory_size, limit):
-    data_path = Datapath(data_memory_size, input_tokens, code)
+def simulation(code, code_len, input_tokens, data_memory_size, limit):
+    data_path = Datapath(data_memory_size, input_tokens, code, code_len)
     control_unit = ControlUnit(data_path)
 
     logging.debug("%s", control_unit)
@@ -565,14 +575,17 @@ def main(code, file_input, out):
         sys.stdout = open(os.devnull, "w")
         sys.stderr = open(os.devnull, "w")
         logging.getLogger().setLevel(logging.CRITICAL + 1)
-    with open(code, "r", encoding="utf-8") as file:
+    with open(code, "rb") as file:
         text_code = file.read()
-    code = from_bytes(text_code)
+    binary_code = bytearray(text_code)
+    code, code_len = bin_to_opcode(binary_code)
+    print(code)
+    print(code_len, code[code_len- 1:])
     with open(file_input, encoding="utf-8") as file:
         input_text = file.read()
         input_tokens = list(input_text)
 
-    output, ticks = simulation(code, input_tokens, data_memory_size=200, limit=200000000)
+    output, ticks = simulation(code, code_len, input_tokens, data_memory_size=3000, limit=200000000)
     print(output)
     print("ticks:", ticks)
 

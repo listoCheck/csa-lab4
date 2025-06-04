@@ -1,57 +1,63 @@
+0x0 VARIABLE index_start
+0x0 VARIABLE index_end
+0x0 VARIABLE massive_index
+0x0 VARIABLE dop_var
+0x0 VARIABLE mass_exit
+0x0 VARIABLE mass_exit2
 _start:
     in 0
     lit 48  ; чтобы сделать нормальное количество букв (паскаль строкой)
     call rep
     dup
-    lit 1
+    lit index_end
     swap
     !
     !
-    lit 2
+    lit dop_var
     lit 0
     !
 while:
     in 0
-    lit 0
+    lit index_start
     @
-    lit 1
+    lit index_end
     @       ; это нужно чтобы найти число, которое прибавить к адресу
     -
-    lit 5   ; адрес массива
+    lit massive_index   ; адрес массива
     +
     swap
     !
-    lit 0
+    lit index_start
     @
     lit 1
     call rep
     dup
     if next
     !
-    lit 2
+    lit dop_var
     dup
     @
-    lit 1
+    lit index_end
     +
     jump while
 rep:
     swap
     -
-    lit 0
+    lit index_start
     swap
     ret
 next:
-    lit 1
+    lit index_end
     @
-    lit 0
+    lit index_start
     swap
     !
 repeat:
-    lit 3
+    lit mass_exit
     @
     lit 1
     +
-    lit 0
+    lit index_start
     @
     -
     if check
@@ -60,15 +66,15 @@ repeat:
     >
     dup
     if swap_nums
-    lit 4
+    lit mass_exit2
     @
     +
-    lit 4
+    lit mass_exit2
     swap
     !
     jump continue
 continue:
-    lit 3
+    lit mass_exit
     dup
     @
     lit 1
@@ -88,8 +94,8 @@ swap_nums:
     !
     jump continue
 get_addr:
-    lit 5   ; адрес массива
-    lit 3
+    lit massive_index   ; адрес массива
+    lit mass_exit
     @
     +
     ret
@@ -103,18 +109,18 @@ get_nums:
     @
     ret
 check:
-    lit 4
+    lit mass_exit2
     @
     lit 1
     +
-    lit 0
+    lit index_start
     @
     -
     if end
-    lit 4
+    lit mass_exit2
     lit 0
     !
-    lit 3
+    lit mass_exit
     lit 0
     !
     jump repeat
