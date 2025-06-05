@@ -13,7 +13,6 @@ class Datapath:
     data_memory_size = None  # Размер памяти данных.
     data_memory = None  # Память данных. Инициализируется нулевыми значениями.
     a = None
-    tos = None
     program_memory_size = None
     return_stack = None
 
@@ -33,7 +32,6 @@ class Datapath:
         self.stack_first = 0
         self.stack_second = 0
         self.a = 0
-        self.tos = 0
         self.carry = 0
         self.return_stack = []
         self.INT32_MIN = -2 ** 31
@@ -44,6 +42,7 @@ class Datapath:
             2: self.output_buffer0,  # порт 2: вывод
             3: self.output_buffer1  # порт 3: вывод
         }
+        self.alu_result = 0
 
     def write_in_memory(self):
         addr = self.stack[-2]
@@ -67,73 +66,70 @@ class Datapath:
 
     def flag_zero(self):
         flag = False
-        if self.tos == 0:
+        if self.alu_result == 0:
             flag = True
         return flag
 
-    def write_tos(self):
-        self.tos = self.stack[-1]
-        self.stack = self.stack[:-1]
 
     def stack_to_a(self):
         self.a = self.stack[-1]
         self.stack = self.stack[:-1]
 
-    def a_to_tos(self):
-        self.tos = self.a
+    def a_to_stack(self):
+        self.stack.append(self.a)
 
-    def save_tos(self):
-        self.stack.append(self.tos)
 
     def alu(self, operand):
         value = 0
         self.stack_first = self.stack[-1]
+        self.stack_second = self.stack[-2]
         if operand == "+":
-            value = self.stack_first + self.tos
-            self.stack = self.stack[:-1]
+            value = self.stack_first + self.stack_second
+            self.stack = self.stack[:-2]
             value = self.check_carry(value)
         if operand == "-":
-            value = self.tos - self.stack_first
-            self.stack = self.stack[:-1]
+            value = self.stack_first - self.stack_second
+            self.stack = self.stack[:-2]
             value = self.check_carry(value)
         if operand == "*":
-            value = self.tos * self.stack_first
-            self.stack = self.stack[:-1]
+            value = self.stack_first * self.stack_second
+            self.stack = self.stack[:-2]
             value = self.check_carry(value)
         if operand == "/":
-            if self.tos == 0:
+            if self.stack_first == 0:
                 raise Exception("Division by zero")
-            value = self.tos // self.stack_first
-            self.stack = self.stack[:-1]
+            value = self.stack_first // self.stack_second
+            self.stack = self.stack[:-2]
             value = self.check_carry(value)
         if operand == "~":
-            value = ~self.tos
+            value = ~self.stack_first
+            self.stack = self.stack[:-1]
         if operand == "%":
-            value = self.tos % self.stack_first
-            self.stack = self.stack[:-1]
+            value = self.stack_first % self.stack_second
+            self.stack = self.stack[:-2]
         if operand == "&":
-            value = self.tos & self.stack_first
-            self.stack = self.stack[:-1]
+            value = self.stack_first & self.stack_second
+            self.stack = self.stack[:-2]
         if operand == "|":
-            value = self.tos | self.stack_first
-            self.stack = self.stack[:-1]
+            value = self.stack_first | self.stack_second
+            self.stack = self.stack[:-2]
         if operand == "^":
-            value = self.tos ^ self.stack_first
-            self.stack = self.stack[:-1]
+            value = self.stack_first ^ self.stack_second
+            self.stack = self.stack[:-2]
         if operand == "--":
-            value = -self.tos
+            value = -self.stack_first
             value = self.check_carry(value)
+            self.stack = self.stack[:-1]
         if operand == "==":
-            value = int(self.tos == self.stack_first)
-            self.stack = self.stack[:-1]
+            value = int(self.stack_first == self.stack_second)
+            self.stack = self.stack[:-2]
         if operand == ">":
-            # print(self.tos, self.stack_first)
-            value = int(self.tos > self.stack_first)
-            self.stack = self.stack[:-1]
+            value = int(self.stack_first > self.stack_second)
+            self.stack = self.stack[:-2]
         if operand == "<":
-            value = int(self.tos < self.stack_first)
-            self.stack = self.stack[:-1]
-        self.tos = value
+            value = int(self.stack_first < self.stack_second)
+            self.stack = self.stack[:-2]
+        self.alu_result = value
 
     def check_carry(self, value):
         # надо, чтобы привести к 32-битному знаковому числу
@@ -154,20 +150,24 @@ class Datapath:
         self.return_stack.append(self.program_counter)
 
     def pop_return_stack(self):
-        self.tos = self.return_stack[-1]
+        self.a = self.return_stack[-1]
         self.return_stack = self.return_stack[:-1]
 
-    def tos_to_pc(self):
-        self.program_counter = self.tos
+    def stack_to_pc(self):
+        self.program_counter = self.a
 
     def get_key_from_input(self, port):
         if self.buffers[port]:
             ch = self.buffers[port].pop(0)
-            self.tos = ord(ch)
+            self.a = ord(ch)
             print(f"Read char '{ch}' (code {ord(ch)})")
         else:
-            self.tos = 0
+            self.a = 0
             print("Input buffer empty")
+
+    def load_alu_value(self):
+        self.alu_result = self.stack[-1]
+        self.stack = self.stack[:-1]
 
     def send_char_to_output(self, port):
         if self.stack[-1] < 32:
@@ -179,6 +179,18 @@ class Datapath:
         self.buffers[port].append(value)
         print(f"Output char '{value}'")
         self.stack = self.stack[:-1]
+
+    def save_to_return_stack(self):
+        self.return_stack.append(self.stack[-1])
+        self.stack = self.stack[:-1]
+        print(self.return_stack)
+
+    def return_stack_to_stack(self):
+        self.stack.append(self.return_stack[-1])
+        self.return_stack = self.return_stack[:-1]
+
+    def save_alu_result(self):
+        self.stack.append(self.alu_result)
 
 
 # надо сделать схему с вентилями и дальше в логгинге выполнения каждый команды написать какие вентили под нее я открываю
@@ -198,6 +210,7 @@ class ControlUnit:
         self.halted = False
         self.rep_swap_dup = False
         self.exit_out = ""
+        self.next_command = False
 
     def tick(self):
         """Продвинуть модельное время процессора вперёд на один такт."""
@@ -214,17 +227,16 @@ class ControlUnit:
             sys.stdout = original_stdout
             sys.stderr = original_stderr
             print(f"Tick: {self._tick}, "
-                    f"PC: {self.data_path.program_counter}, "
-                    f"Stack: [{self.data_path.stack[-1]}, {self.data_path.stack[-2]}], "
-                    f"Input: {self.data_path.input_buffer0}, "
-                    f"Output: {self.data_path.output_buffer0}, "
-                    f"tos: {self.data_path.tos}, "
-                    f"a: {self.data_path.a}, "
-                    f"b: {self.data_path.return_stack}, "
-                    f"dump: {self.data_path.data_memory[self.data_path.code_len:self.data_path.code_len + 50]}, ")
+                  f"PC: {self.data_path.program_counter}, "
+                  f"Stack: [{self.data_path.stack[-1]}, {self.data_path.stack[-2]}], "
+                  f"Input: {self.data_path.input_buffer0}, "
+                  f"Output: {self.data_path.output_buffer0}, "
+                  f"a: {self.data_path.a}, "
+                  f"b: {self.data_path.return_stack}, "
+                  f"dump: {self.data_path.data_memory[self.data_path.code_len:self.data_path.code_len + 50]}, ")
             raise StopIteration()
 
-        #if self.data_path.program_counter >= self.data_path.program_memory_size:
+        # if self.data_path.program_counter >= self.data_path.program_memory_size:
         #    raise StopIteration()
 
         instr = self.data_path.data_memory[self.data_path.program_counter]
@@ -240,13 +252,15 @@ class ControlUnit:
         mc = mp[prev_mpc]
         mc(self, instr)
         self.tick()
-        while prev_mpc != self.mpc:
+
+        while prev_mpc != self.mpc and (not self.next_command):
             prev_mpc = self.mpc
             mc = mp[self.mpc]
             mc(self, instr)
             self.tick()
 
         if not self.halted and opcode not in (Opcode.JUMP, Opcode.HALT, Opcode.CALL):
+            self.next_command = False
             self.data_path.program_counter += 1
 
     def micro_push(self, instr):
@@ -262,116 +276,101 @@ class ControlUnit:
     # DUP: дублирует верхний элемент стека
     def micro_dup(self, instr):
         print(f"[tick {self._tick}] DUP")
-        self.data_path.tos = self.data_path.stack[-1]
         self.data_path.a = self.data_path.stack[-1]
         self.data_path.stack = self.data_path.stack[:-1]
-        self.mpc -= 26
-        self.rep_swap_dup = True
+        self.mpc += 1
+        #self.rep_swap_dup = True
 
     # SWAP: меняет местами верхние два элемента стека
     def micro_swap(self, instr):
         print(f"[tick {self._tick}] SWAP")
-        self.micro_tos(instr)
-        self.tick()
         self.mpc += 1
-        self.rep_swap_dup = True
+        #self.rep_swap_dup = True
 
     # ADD
     def micro_add(self, instr):
         print(f"[tick {self._tick}] ADD")
-        self.micro_tos(instr)
         self.data_path.alu("+")
-        self.mpc -= 2
+        self.mpc += 1
 
     # SUB
     def micro_sub(self, instr):
         print(f"[tick {self._tick}] SUB")
-        self.micro_tos(instr)
         self.data_path.alu("-")
-        self.mpc -= 3
+        self.mpc += 1
 
     # MUL
     def micro_mul(self, instr):
         print(f"[tick {self._tick}] MUL")
-        self.micro_tos(instr)
         self.data_path.alu("*")
-        self.mpc -= 4
+        self.mpc += 1
 
     # DIV
     def micro_div(self, instr):
         print(f"[tick {self._tick}] DIV")
-        self.micro_tos(instr)
         self.data_path.alu("/")
-        self.mpc -= 5
+        self.mpc += 1
 
     # MOD
     def micro_mod(self, instr):
         print(f"[tick {self._tick}] MOD")
-        self.micro_tos(instr)
         self.data_path.alu("%")
-        self.mpc -= 6
+        self.mpc += 1
 
     # NEGATE
     def micro_negate(self, instr):
         print(f"[tick {self._tick}] NEGATE")
-        self.micro_tos(instr)
         self.data_path.alu("--")
-        self.mpc -= 7
+        self.mpc += 1
 
     # EQUAL (=)
     def micro_equal(self, instr):
         print(f"[tick {self._tick}] EQUAL")
-        self.micro_tos(instr)
         self.data_path.alu("==")
-        self.mpc -= 8
+        self.mpc += 1
 
     # LESS (<)
     def micro_less(self, instr):
         print(f"[tick {self._tick}] LESS")
-        self.micro_tos(instr)
         self.data_path.alu("<")
-        self.mpc -= 9
+        self.mpc += 1
 
     # GREATER (>)
     def micro_greater(self, instr):
         print(f"[tick {self._tick}] GREATER")
-        self.micro_tos(instr)
         self.data_path.alu(">")
-        self.mpc -= 10
+        self.mpc += 1
 
     # AND
     def micro_and(self, instr):
         print(f"[tick {self._tick}] AND")
-        self.micro_tos(instr)
         self.data_path.alu("&")
-        self.mpc -= 11
+        self.mpc += 1
 
     # OR
     def micro_or(self, instr):
         print(f"[tick {self._tick}] OR")
-        self.micro_tos(instr)
         self.data_path.alu("|")
-        self.mpc -= 12
+        self.mpc += 1
 
     # XOR
     def micro_xor(self, instr):
         print(f"[tick {self._tick}] XOR")
-        self.micro_tos(instr)
         self.data_path.alu("^")
-        self.mpc -= 13
+        self.mpc += 1
 
     # INVERT
     def micro_invert(self, instr):
         print(f"[tick {self._tick}] INVERT")
         self.data_path.alu("~")
-        self.mpc -= 14
+        self.mpc += 1
 
     # IF (условный переход, реализуем как простой переход, если acc != 0)
     def micro_if_1(self, instr):
         print(f"[tick {self._tick}] IF - проверка условия")
-        self.micro_tos(instr)
+        self.data_path.load_alu_value()
         self.mpc += 1
-        print("tos:", self.data_path.tos)
+        #print("tos:", self.data_path.tos)
 
     def micro_if_2(self, instr):
         addr = instr["arg"]
@@ -389,8 +388,8 @@ class ControlUnit:
     # FETCH - загрузить в стек значение из памяти по адресу stack_first
     def micro_fetch(self, instr):
         print(f"[tick {self._tick}] FETCH")
-        self.data_path.tos = self.data_path.read_from_memory()
-        self.mpc -= 17
+        self.data_path.a = self.data_path.read_from_memory()
+        self.mpc += 1
 
     # KEY - получить символ из входного буфера
     def micro_key(self, instr):
@@ -400,7 +399,7 @@ class ControlUnit:
             self.data_path.get_key_from_input(port)
         else:
             raise ValueError(f"Неизвестный порт для чтения: {port}")
-        self.mpc -= 18
+        self.mpc += 1
 
     # HALT
     def micro_halt(self, instr):
@@ -414,7 +413,6 @@ class ControlUnit:
 
     def micro_lit_2(self, instr):
         print(f"[tick {self._tick}] LIT - загрузка значения {instr['arg']}")
-        print(f"[tick {self._tick}] TOS -> STACK")
         self.data_path.stack_push(instr["arg"])
 
     # EMIT - выводить символ из stack_first
@@ -438,49 +436,52 @@ class ControlUnit:
         print(f"Jump to {target}")
         self.data_path.program_counter = target
 
-    def micro_tos(self, instr):
-        print(f"[tick {self._tick}] FIRST_STACK -> TOS")
-        self.data_path.write_tos()
 
     def micro_stack_to_a(self, instr):
         print(f"[tick {self._tick}] FIRST_STACK -> A")
         self.data_path.stack_to_a()
         self.mpc += 1
 
-    def micro_a_to_tos(self, instr):
-        print(f"[tick {self._tick}] A -> TOS")
-        self.data_path.a_to_tos()
-        self.mpc -= 1
+    def micro_a_to_stack(self, instr):
+        print(f"[tick {self._tick}] A -> STACK")
+        self.data_path.a_to_stack()
+        self.mpc += 1
 
-    def micro_tos_to_stack(self, instr):
-        print(f"[tick {self._tick}] TOS -> FIRST_STACK")
-        self.data_path.save_tos()
-        if self.rep_swap_dup:
-            self.mpc += 1
-            self.rep_swap_dup = False
 
     def micro_ret(self, instr):
         # print(f"[tick {self._tick}] RET")
         self.data_path.pop_return_stack()
-        self.data_path.tos_to_pc()
+        self.data_path.stack_to_pc()
 
     def micro_carry(self, instr):
         print(f"[tick {self._tick}] CARRY")
         self.data_path.stack_push(self.data_path.carry)
 
+    def micro_stack_2_ret_stack(self, instr):
+        self.data_path.save_to_return_stack()
+        self.mpc += 1
+
+    def micro_ret_stack_2_stack(self, instr):
+        self.data_path.return_stack_to_stack()
+        self.mpc += 1
+
+    def micro_next_command(self, instr):
+        self.next_command = True
+        return
+
+    def micro_alu_2_stack(self, instr):
+        self.data_path.save_alu_result()
+        self.mpc += 1
+
     def __str__(self):
         return (f"Tick: {self._tick}, "
-                    f"PC: {self.data_path.program_counter}, "
-                    f"Stack: [{self.data_path.stack[-1]}, {self.data_path.stack[-2]}], "
-                    f"Input: {self.data_path.input_buffer0}, "
-                    f"Output: {self.data_path.output_buffer0}, "
-                    f"tos: {self.data_path.tos}, "
-                    f"a: {self.data_path.a}, "
-                    f"b: {self.data_path.return_stack}, "
-                    f"dump: {self.data_path.data_memory[self.data_path.code_len-1:self.data_path.code_len + 50]}, ")
-
-
-
+                f"PC: {self.data_path.program_counter}, "
+                f"Stack: [{self.data_path.stack[-1]}, {self.data_path.stack[-2]}], "
+                f"Input: {self.data_path.input_buffer0}, "
+                f"Output: {self.data_path.output_buffer0}, "
+                f"a: {self.data_path.a}, "
+                f"b: {self.data_path.return_stack}, "
+                f"dump: {self.data_path.data_memory[self.data_path.code_len - 1:self.data_path.code_len + 50]}, ")
 
 
 def simulation(code, code_len, input_tokens, data_memory_size, limit):
@@ -505,68 +506,104 @@ def simulation(code, code_len, input_tokens, data_memory_size, limit):
 
 # Массив микрокода
 mp = [
-    ControlUnit.micro_swap,
-    ControlUnit.micro_stack_to_a,
-    ControlUnit.micro_tos_to_stack,
-    ControlUnit.micro_a_to_tos,
-    ControlUnit.micro_add,
-    ControlUnit.micro_sub,
-    ControlUnit.micro_mul,
-    ControlUnit.micro_div,
-    ControlUnit.micro_mod,
-    ControlUnit.micro_negate,
-    ControlUnit.micro_equal,
-    ControlUnit.micro_less,
-    ControlUnit.micro_greater,
-    ControlUnit.micro_and,
-    ControlUnit.micro_or,
-    ControlUnit.micro_xor,
-    ControlUnit.micro_invert,
-    ControlUnit.micro_if_1,
-    ControlUnit.micro_if_2,
-    ControlUnit.micro_fetch,
-    ControlUnit.micro_key,
-    ControlUnit.micro_store,
-    ControlUnit.micro_lit_1,
-    ControlUnit.micro_lit_2,
-    ControlUnit.save_comeback_adr,
-    ControlUnit.micro_jump,
-    ControlUnit.micro_ret,
-    ControlUnit.micro_drop,
-    ControlUnit.micro_dup,
-    ControlUnit.micro_emit,
-    ControlUnit.micro_carry,
-    ControlUnit.micro_halt
+    ControlUnit.micro_swap,                 # 0 swap
+    ControlUnit.micro_stack_2_ret_stack,    # 1
+    ControlUnit.micro_stack_to_a,           # 2
+    ControlUnit.micro_ret_stack_2_stack,    # 3
+    ControlUnit.micro_a_to_stack,           # 4
+    ControlUnit.micro_next_command,         # 5
+    ControlUnit.micro_add,                  # 6 +
+    ControlUnit.micro_alu_2_stack,          # 7
+    ControlUnit.micro_next_command,         # 8
+    ControlUnit.micro_sub,                  # 9 -
+    ControlUnit.micro_alu_2_stack,          # 10
+    ControlUnit.micro_next_command,         # 11
+    ControlUnit.micro_mul,                  # 12 *
+    ControlUnit.micro_alu_2_stack,          # 13
+    ControlUnit.micro_next_command,         # 14
+    ControlUnit.micro_div,                  # 15 //
+    ControlUnit.micro_alu_2_stack,          # 16
+    ControlUnit.micro_next_command,         # 17
+    ControlUnit.micro_mod,                  # 18 %
+    ControlUnit.micro_alu_2_stack,          # 19
+    ControlUnit.micro_next_command,         # 20
+    ControlUnit.micro_negate,               # 21 --
+    ControlUnit.micro_alu_2_stack,          # 22
+    ControlUnit.micro_next_command,         # 23
+    ControlUnit.micro_equal,                # 24 ==
+    ControlUnit.micro_alu_2_stack,          # 25
+    ControlUnit.micro_next_command,         # 26
+    ControlUnit.micro_less,                 # 27 <
+    ControlUnit.micro_alu_2_stack,          # 28
+    ControlUnit.micro_next_command,         # 29
+    ControlUnit.micro_greater,              # 30 >
+    ControlUnit.micro_alu_2_stack,          # 31
+    ControlUnit.micro_next_command,         # 32
+    ControlUnit.micro_and,                  # 33 and
+    ControlUnit.micro_alu_2_stack,          # 34
+    ControlUnit.micro_next_command,         # 35
+    ControlUnit.micro_or,                   # 36 or
+    ControlUnit.micro_alu_2_stack,          # 37
+    ControlUnit.micro_next_command,         # 38
+    ControlUnit.micro_xor,                  # 39 xor
+    ControlUnit.micro_alu_2_stack,          # 40
+    ControlUnit.micro_next_command,         # 41
+    ControlUnit.micro_invert,               # 42 invert
+    ControlUnit.micro_alu_2_stack,          # 43
+    ControlUnit.micro_next_command,         # 44
+    ControlUnit.micro_if_1,                 # 45 if
+    ControlUnit.micro_if_2,                 # 46
+    ControlUnit.micro_next_command,         # 47
+    ControlUnit.micro_fetch,                # 48 @
+    ControlUnit.micro_a_to_stack,           # 49
+    ControlUnit.micro_next_command,         # 50
+    ControlUnit.micro_key,                  # 51 in
+    ControlUnit.micro_a_to_stack,           # 52
+    ControlUnit.micro_next_command,         # 53
+    ControlUnit.micro_store,                # 54 !
+    ControlUnit.micro_lit_1,                # 55 lit
+    ControlUnit.micro_lit_2,                # 56
+    ControlUnit.save_comeback_adr,          # 57 call
+    ControlUnit.micro_jump,                 # 58 jump
+    ControlUnit.micro_ret,                  # 59 ret
+    ControlUnit.micro_drop,                 # 60 drop
+    ControlUnit.micro_dup,                  # 61 dup
+    ControlUnit.micro_a_to_stack,           # 62
+    ControlUnit.micro_a_to_stack,           # 63
+    ControlUnit.micro_next_command,         # 64
+    ControlUnit.micro_emit,                 # 65 out
+    ControlUnit.micro_carry,                # 66 c
+    ControlUnit.micro_halt                  # 67 halt
 ]
 
 mapping = {
     Opcode.SWAP: 0,
-    Opcode.ADD: 4,
-    Opcode.SUB: 5,
-    Opcode.MUL: 6,
-    Opcode.DIV: 7,
-    Opcode.MOD: 8,
-    Opcode.NEGATE: 9,
-    Opcode.EQUAL: 10,
-    Opcode.LESS: 11,
-    Opcode.GREATER: 12,
-    Opcode.AND: 13,
-    Opcode.OR: 14,
-    Opcode.XOR: 15,
-    Opcode.INVERT: 16,
-    Opcode.IF: 17,
-    Opcode.FETCH: 19,
-    Opcode.IN: 20,
-    Opcode.STORE: 21,
-    Opcode.LIT: 22,
-    Opcode.CALL: 24,
-    Opcode.JUMP: 25,
-    Opcode.RET: 26,
-    Opcode.DROP: 27,
-    Opcode.DUP: 28,
-    Opcode.OUT: 29,
-    Opcode.CARRY: 30,
-    Opcode.HALT: 31
+    Opcode.ADD: 6,
+    Opcode.SUB: 9,
+    Opcode.MUL: 12,
+    Opcode.DIV: 15,
+    Opcode.MOD: 18,
+    Opcode.NEGATE: 21,
+    Opcode.EQUAL: 24,
+    Opcode.LESS: 27,
+    Opcode.GREATER: 30,
+    Opcode.AND: 33,
+    Opcode.OR: 36,
+    Opcode.XOR: 39,
+    Opcode.INVERT: 42,
+    Opcode.IF: 45,
+    Opcode.FETCH: 48,
+    Opcode.IN: 51,
+    Opcode.STORE: 54,
+    Opcode.LIT: 55,
+    Opcode.CALL: 57,
+    Opcode.JUMP: 58,
+    Opcode.RET: 59,
+    Opcode.DROP: 60,
+    Opcode.DUP: 61,
+    Opcode.OUT: 65,
+    Opcode.CARRY: 66,
+    Opcode.HALT: 67
 }
 
 
@@ -580,7 +617,7 @@ def main(code, file_input, out):
     binary_code = bytearray(text_code)
     code, code_len = bin_to_opcode(binary_code)
     print(code)
-    print(code_len, code[code_len- 1:])
+    print(code_len, code[code_len - 1:])
     with open(file_input, encoding="utf-8") as file:
         input_text = file.read()
         input_tokens = list(input_text)
