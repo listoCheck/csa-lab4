@@ -125,4 +125,24 @@ check:
     !
     jump repeat
 end:
+    lit index_end
+    lit 0
+    !
+while_end:
+    lit massive_index
+    lit index_end @ + @
+    out 2
+    lit index_end
+    dup
+    @
+    lit 1 +
+    !
+    lit index_end @
+    lit index_start @
+    -
+    if end_halt
+    lit 32
+    out 2
+    jump while_end
+end_halt:
     halt
