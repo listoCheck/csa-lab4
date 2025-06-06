@@ -1,6 +1,3 @@
-#!/usr/bin/python3
-"""Транслятор AccForth в машинный код."""
-
 import base64
 import os
 import re
@@ -26,7 +23,7 @@ class Translator:
 
     def instructions(self):
         return {
-            "drop", "dup", "swap", "+", "-", "*", "/", "mod", "negate", "=", "<", ">", "and", "or", "xor", "invert",
+            "drop", "dup", "swap", "+", "-", "*", "/", "%", "negate", "=", "<", ">", "and", "or", "xor", "invert",
             "if", "!", "@", "in", "halt", "lit", "out", "jump", "call", "ret", "c"
         }
 
