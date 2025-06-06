@@ -506,7 +506,7 @@ def simulation(code, code_len, input_tokens, data_memory_size, limit):
 
 # Массив микрокода
 mp = [
-    ControlUnit.micro_swap,                 # 0 swap
+    ControlUnit.micro_swap,                 # 0 swap (в памяти 0 бит)
     ControlUnit.micro_stack_2_ret_stack,    # 1
     ControlUnit.micro_stack_to_a,           # 2
     ControlUnit.micro_ret_stack_2_stack,    # 3

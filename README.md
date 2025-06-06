@@ -243,7 +243,7 @@ input_stream - поток ввода
 
 
 Микропрограммы:
-Каждая микропрограмма содержит 31 сигналов, значит кодируется 31 битом или 4 байтами 
+Каждая микропрограмма содержит 39 сигналов, значит кодируется 39 битами
 ```
 1. sf - открыть защелку с первого значения стека
 2. ss - открыть защелку со второго значения стека
@@ -262,8 +262,9 @@ input_stream - поток ввода
 15 - 28. - арифметические и логические операции в алу (+ - * ... and or ...)
 29. muxPC - мультиплексор у PC
 30. muxALUS - мультиплексор у алу и стека
-31. cmd - команда 
+31 - 39. cmd - команда (тут хранится Opcode, при помощи которого LUT выбирает нужную микрокоманду)
 ```
+По 31-39 битам идет выбор начальной микроинструкции для нужной команды
 
 Описание реализации:
 
@@ -286,7 +287,7 @@ input_stream - поток ввода
 ## Схемы DataPath и ControlUnit
 Control Unit:
 
-![img.png](images/ControlUnit.png)
+![img.png](images/cu.png)
 
 Data Path:
 
@@ -331,19 +332,23 @@ end:                                    ; завершаем работу про
 
 ## Запуск golden-тестов
 ```
-(.venv) PS C:\Users\artem\PycharmProjects\csa-lab4> pytest
-===================================================================================================== test session starts =====================================================================================================
+(.venv) ~\PycharmProjects\csa-lab4 git:[main]
+pytest 
+C:\Users\artem\PycharmProjects\csa-lab4\.venv\Lib\site-packages\pytest_golden\plugin.py:53: GoldenTestUsageWarning: Add 'enable_assertion_pass_hook=true' to pytest.ini for safer usage of pytest-golden.
+  warnings.warn(
+==================================================================================================== test session starts ====================================================================================================
 platform win32 -- Python 3.11.8, pytest-8.3.5, pluggy-1.6.0
 rootdir: C:\Users\artem\PycharmProjects\csa-lab4
 configfile: pytest.ini
-plugins: golden-0.2.2
-collected 6 items                                                                                                                                                                                                              
+plugins: anyio-4.9.0, golden-0.2.2
+collected 7 items                                                                                                                                                                                                            
 
-golden_test.py ......                                                                                                                                                                                                    [100%]
+golden_test.py .......                                                                                                                                                                                                 [100%]
 
-====================================================================================================== 6 passed in 1.06s ====================================================================================================== 
+===================================================================================================== 7 passed in 1.24s =====================================================================================================```
 ```
 работа тестов на github:
+
 ```
 Run poetry run coverage run -m pytest
 /home/runner/.cache/pypoetry/virtualenvs/forth-yJKRdTo1-py3.11/lib/python3.11/site-packages/pytest_golden/plugin.py:53: GoldenTestUsageWarning: Add 'enable_assertion_pass_hook=true' to pytest.ini for safer usage of pytest-golden.
@@ -370,7 +375,7 @@ TOTAL              680     82    88%
 ```
 
 Для тестирования использовал все необходимые программы, а именно:
-1) программа вывода Hello World!
+1) программа вывода Hello World! 
 2) программа hello_user
 3) программа cat для вывода пользовательского ввода
 4) программа arifm, которая отвечает за переполнение 32-битного регистра алу и сохранения этого числа в памяти
