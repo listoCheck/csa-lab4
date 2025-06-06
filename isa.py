@@ -95,17 +95,17 @@ def to_bytes(code, first_ex_instr):
     binary_bytes += bytes(4)
     binary_bytes += first_ex_instr.to_bytes(4, byteorder="big")
     for instr in code:
-        #print("instr", instr)
+        # print("instr", instr)
         if "opcode" in instr:
             opcode_bin = opcode_to_binary[instr["opcode"]]
             binary_bytes.append(opcode_bin)
             if "arg" in instr:
                 arg = instr.get("arg", 0)
-                #print(arg)
+                # print(arg)
                 binary_bytes.extend(((arg >> 16) & 0xFF, (arg >> 8) & 0xFF, arg & 0xFF))
-                #print(((arg >> 16) & 0xFF, (arg >> 8) & 0xFF, arg & 0xFF))
-                #print(binary_bytes)
-        elif "arg" in instr and not "opcode" in instr:
+                # print(((arg >> 16) & 0xFF, (arg >> 8) & 0xFF, arg & 0xFF))
+                # print(binary_bytes)
+        elif "arg" in instr and "opcode" not in instr:
             arg = instr.get("arg", 0)
             # print(arg)
             if isinstance(arg, int):
@@ -155,7 +155,7 @@ def has_arg(opcode) -> bool:
 
 def to_hex(code, variables_map):
     addr_to_var = {addr - 4 * len(variables_map): name for name, addr in variables_map.items()}
-    #print(code)
+    # print(code)
 
     """Преобразует машинный код в текстовый файл c шестнадцатеричным представлением.
 
@@ -180,13 +180,13 @@ def to_hex(code, variables_map):
                     | (binary_code[i + 2] << 8)
                     | binary_code[i + 3]
             )
-            #print(address)
+            # print(address)
             if address in addr_to_var:
                 mnemonic = addr_to_var[address]
             i += 4
         else:
             mnemonic = binary_to_opcode[binary_code[address]].value
-            #print(address, int(binary_code[address]), has_argument, mnemonic)
+            # print(address, int(binary_code[address]), has_argument, mnemonic)
             if binary_to_opcode[binary_code[address]] == Opcode.HALT:
                 after_halt = True
             if has_argument:
@@ -217,12 +217,14 @@ def to_hex(code, variables_map):
 
     return "\n".join(result)
 
+
 def make_zeros(num, code):
     for i in range(num):
         code.append("0")
 
+
 def bin_to_opcode(binary_code):
-    #print(binary_code)
+    # print(binary_code)
     code = []
     i = (
             (binary_code[4] << 24)
@@ -230,7 +232,7 @@ def bin_to_opcode(binary_code):
             | (binary_code[6] << 8)
             | (binary_code[7])
     )
-    #print(i)
+    # print(i)
     make_zeros(i, code)
     code_len = i
     flag_var = False
@@ -268,6 +270,5 @@ def bin_to_opcode(binary_code):
                 code.append(instr)
                 i += 1
                 code_len += 1
-
 
     return code, code_len + 1

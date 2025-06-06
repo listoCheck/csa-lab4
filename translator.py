@@ -6,12 +6,13 @@ import os
 import re
 import sys
 
-from isa import Opcode, Term, to_bytes, to_hex, bin_to_opcode
+from isa import Opcode, Term, to_bytes, to_hex
+
 
 # комментарии разрешены только после #
 
 class Translator:
-    variables_map = None # имя - адрес
+    variables_map = None  # имя - адрес
     functions_map = None
     variables_queue = None  # переменные будут сохранены в конце кода, после хальта,
     # чтобы гарантированно не мешать коду; имя - значение
@@ -29,7 +30,6 @@ class Translator:
             "if", "!", "@", "in", "halt", "lit", "out", "jump", "call", "ret", "c"
         }
 
-
     def math_instructions(self):  # на этапе трансляции они будут развернуты в POP_AC + POP_DR + INSTR
         return {
             "+",
@@ -46,7 +46,6 @@ class Translator:
             ">",
             "<",
         }
-
 
     def instr_without_arg(self):  # без аргумента
         return {
@@ -73,10 +72,8 @@ class Translator:
             "halt",
         }
 
-
     def second_type_instructions(self):  # с аргументом + LOAD_IMM + CALL
         return {"jump", "call", "if", "in", "out", "lit"}
-
 
     def word_to_opcode(self, symbol):
         """Отображение операторов исходного кода в коды операций."""
@@ -112,8 +109,6 @@ class Translator:
             "c": Opcode.CARRY,
         }.get(symbol)
 
-
-
     def text_to_terms(self, text):
         """Трансляция текста в последовательность операторов языка (токенов).
 
@@ -137,7 +132,6 @@ class Translator:
         # pos - адрес, потом переименую
         return terms
 
-
     def translate_stage_1(self, text):
         """Первый этап трансляции.
         Убираются все токены, которые не отображаются напрямую в команды,
@@ -153,10 +147,10 @@ class Translator:
         address = 8
         hex_number_pattern = r"^0[xX][0-9A-Fa-f]+$"
         dec_number_pattern = r"^[0-9]+$"
-        last_begin = []
+        # last_begin = []
         while i < len(terms):
             term = terms[i]
-            #print(term)
+            # print(term)
             if ":" in term.word:
                 label = terms[i].word.split(":")[0]
                 self.functions_map[label] = address
@@ -178,19 +172,19 @@ class Translator:
         for key in self.functions_map:
             self.functions_map[key] -= delta
 
-        #print(self.functions_map)
+        # print(self.functions_map)
         while i < len(terms):
             term = terms[i]
-            #print(term, address)
+            # print(term, address)
             # если это 16 cc число - load_imm
             if re.fullmatch(hex_number_pattern, term.word):
 
                 arg = int(term.word, 16)
-                assert -2**63 <= arg <= 2**63-1, "Argument is not in range!"
+                assert -2 ** 63 <= arg <= 2 ** 63 - 1, "Argument is not in range!"
                 code.append(
                     {
                         "address": address,
-                        "opcode": self.word_to_opcode(terms[i-1].word),
+                        "opcode": self.word_to_opcode(terms[i - 1].word),
                         "arg": arg,
                         "term": term,
                     }
@@ -198,12 +192,12 @@ class Translator:
             # или 10 сс
             elif re.fullmatch(dec_number_pattern, term.word):
                 arg = int(term.word)
-                assert -2**63 <= arg <= 2**63-1, "Argument is not in range!"
+                assert -2 ** 63 <= arg <= 2 ** 63 - 1, "Argument is not in range!"
                 address -= 4
                 code.append(
                     {
                         "address": address,
-                        "opcode": self.word_to_opcode(terms[i-1].word),
+                        "opcode": self.word_to_opcode(terms[i - 1].word),
                         "arg": arg,
                         "term": term,
                     }
@@ -244,19 +238,20 @@ class Translator:
             elif ":" in term.word:
                 label = terms[i].word.split(":")[0]
                 self.functions_map[label] = address
-                #address -= 4
+                # address -= 4
                 i += 1
                 continue
 
             # обработка if, чтобы вставить им потом в аругменты адреса переходов
             elif self.word_to_opcode(term.word) == Opcode.IF:
                 brackets_stack.append({"address": address, "opcode": Opcode.IF})
-                code.append({"address": address, "opcode": Opcode.IF, "arg": self.functions_map[terms[i+1].word], "term": term})
+                code.append({"address": address, "opcode": Opcode.IF, "arg": self.functions_map[terms[i + 1].word],
+                             "term": term})
                 i += 1
 
             # если встретили переменную или вызов функции
             elif term.word in self.second_type_instructions():
-                #print("каким должно быть", term.word, address)
+                # print("каким должно быть", term.word, address)
                 arg = terms[i + 1].word
                 if arg in self.variables_queue:
                     code.append(
@@ -269,7 +264,7 @@ class Translator:
                     )
                     i += 1
                 elif arg in self.functions_map:
-                    #print(arg)
+                    # print(arg)
                     code.append(
                         {
                             "address": address,
@@ -280,7 +275,7 @@ class Translator:
                     )
                     i += 1
                 elif arg in self.second_type_instructions():
-                    #print("каким ", term.word, address)
+                    # print("каким ", term.word, address)
                     code.append(
                         {
                             "address": address,
@@ -290,21 +285,20 @@ class Translator:
                         }
                     )
                     i += 1
-                #else:
+                # else:
                 #    assert arg in self.variables_map or arg in self.functions_map, f"Label f'{arg}'is not defined!"
             else:
-                #print(self.word_to_opcode(term.word), address)
+                # print(self.word_to_opcode(term.word), address)
                 code.append({"address": address, "opcode": self.word_to_opcode(term.word), "term": term})
                 address -= 3
 
-            #if term.word in self.instr_without_arg():
+            # if term.word in self.instr_without_arg():
             #    address -= 3
 
             i += 1
             address += 4
-            #print(address)
+            # print(address)
         return code
-
 
     def translate_stage_2(self, code):
 
@@ -319,12 +313,12 @@ class Translator:
             self.variables_map[label] = curr_address
             code.append({"address": curr_address, "arg": value})
             if isinstance(value, int):
-                if -2**31 <= value <= 2**31-1:
+                if -2 ** 31 <= value <= 2 ** 31 - 1:
                     size = 4
                 else:
                     size = 8
             elif isinstance(value, str):
-                size = len(value)*4
+                size = len(value) * 4
             curr_address += size
 
         for instruction in code:
@@ -338,7 +332,6 @@ class Translator:
                     # если переменной с таким именем нет, транслятор выдаст ошибку еще на первом этапе
 
         return code
-
 
     def get_first_executable_instr(self):
         return self.functions_map["_start"]
@@ -356,9 +349,9 @@ def main(source, target):
     for instr in code:
         print(instr)
     first_ex_instr = translator.get_first_executable_instr()
-    #print("first_ex_instr", first_ex_instr)
+    # print("first_ex_instr", first_ex_instr)
     binary_code = to_bytes(code, first_ex_instr)
-    #print(binary_code)
+    # print(binary_code)
     hex_code = to_hex(code, translator.variables_map)
 
     # Убедимся, что каталог назначения существует
