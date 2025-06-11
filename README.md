@@ -14,7 +14,10 @@
   - `pstr`: Length-prefixed (Pascal string)
   - `prob1`: Find the largest palindrome made from the product of two 3-digit numbers.
 
+### Недочеты первой попытки сдачи (31.05.2025)
+Почему-то удалился комментарий из гугл таблицы
 
+![img.png](images/img.png)
 ### Семантика
 - Стратегия вычислений - стековая.
 - Постфиксная запись (обратная польская нотация).

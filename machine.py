@@ -244,6 +244,7 @@ class ControlUnit:
             while instr == "0":
                 self.data_path.program_counter += 1
                 instr = self.data_path.data_memory[self.data_path.program_counter]
+        #print(instr)
         opcode = instr["opcode"]
         # print(opcode)
         self.mpc = mapping.get(opcode, [])
